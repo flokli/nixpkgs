@@ -36,9 +36,6 @@ in stdenv.mkDerivation {
   nativeBuildInputs = [ pkgconfig which docbook_xsl docbook_xml_dtd_43 patchelfUnstable ]
     ++ optional (!headless) wrapQtAppsHook;
 
-  # Wrap manually because we just need to wrap one executable
-  dontWrapQtApps = true;
-
   buildInputs =
     [ iasl dev86 libxslt libxml2 xorgproto libX11 libXext libXcursor libIDL
       libcap glib lvm2 alsaLib curl libvpx pam makeself perl
@@ -179,10 +176,6 @@ in stdenv.mkDerivation {
     ''}
 
     cp -rv out/linux.*/${buildType}/bin/src "$modsrc"
-  '';
-
-  preFixup = optionalString (!headless) ''
-    wrapQtApp $out/bin/VirtualBox
   '';
 
   passthru = {
