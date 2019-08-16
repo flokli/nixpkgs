@@ -368,6 +368,7 @@ let
       virtualisation.qemu.options =
         if useKvmNestedVirt then ["-cpu" "kvm64,vmx=on"] else [];
       virtualisation.virtualbox.host.enable = true;
+      virtualisation.virtualbox.host.enableHardening = false;
       services.xserver.displayManager.auto.user = "alice";
       users.users.alice.extraGroups = let
         inherit (config.virtualisation.virtualbox.host) enableHardening;
