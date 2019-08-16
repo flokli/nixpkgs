@@ -212,6 +212,14 @@ isELF() {
     if [ "$magic" = $'\177ELF' ]; then return 0; else return 1; fi
 }
 
+isELFExec() {
+  grep -ao -P '^\177ELF.{11}\x00\x02' "$1" >/dev/null
+}
+
+isELFDyn() {
+  grep -ao -P '^\177ELF.{11}\x00\x03' "$1" >/dev/null
+}
+
 # Return success if the specified file is a script (i.e. starts with
 # "#!").
 isScript() {
