@@ -569,6 +569,7 @@ rec {
         # Image name and tag must be lowercase
         imageName = lib.toLower name;
         baseJson = configJson;
+        passthru.layers = bulkLayers;
         passthru.imageTag =
           if tag == null
           then lib.head (lib.splitString "-" (lib.last (lib.splitString "/" result)))
