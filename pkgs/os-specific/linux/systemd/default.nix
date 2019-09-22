@@ -33,7 +33,6 @@ in stdenv.mkDerivation {
     ./0001-Start-device-units-for-uninitialised-encrypted-devic.patch
     ./0003-Don-t-try-to-unmount-nix-or-nix-store.patch
     ./0005-Fix-NixOS-containers.patch
-    ./0006-kmod-static-nodes.service-Don-t-require-lib-modules.patch
     ./0007-Look-for-fsck-in-the-right-place.patch
     ./0008-Add-some-NixOS-specific-unit-directories.patch
     ./0010-Get-rid-of-a-useless-message-in-user-sessions.patch

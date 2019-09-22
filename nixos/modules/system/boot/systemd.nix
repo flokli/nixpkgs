@@ -978,6 +978,10 @@ in
     # Don't bother with certain units in containers.
     systemd.services.systemd-remount-fs.unitConfig.ConditionVirtualization = "!container";
     systemd.services.systemd-random-seed.unitConfig.ConditionVirtualization = "!container";
+
+    # Don't set ConditionFileNotEmpty to /lib/modules/%v/modules.devname, but instead
+    # ${config.system.modulesTree}/lib/modules/%v/modules.dep
+    systemd.services."kmod-static-nodes".unitConfig.ConditionFileNotEmpty = ["" "${config.system.modulesTree}/lib/modules/%v/modules.dep"];
   };
 
   # FIXME: Remove these eventually.
