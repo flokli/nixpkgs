@@ -32,7 +32,6 @@ in stdenv.mkDerivation {
   patches = [
     ./0001-Start-device-units-for-uninitialised-encrypted-devic.patch
     ./0003-Don-t-try-to-unmount-nix-or-nix-store.patch
-    ./0004-Start-getty-on-lxc.patch
     ./0005-Fix-NixOS-containers.patch
     ./0006-kmod-static-nodes.service-Don-t-require-lib-modules.patch
     ./0007-Look-for-fsck-in-the-right-place.patch
