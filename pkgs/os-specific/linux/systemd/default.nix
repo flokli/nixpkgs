@@ -36,7 +36,6 @@ in stdenv.mkDerivation {
     ./0006-kmod-static-nodes.service-Don-t-require-lib-modules.patch
     ./0007-Look-for-fsck-in-the-right-place.patch
     ./0008-Add-some-NixOS-specific-unit-directories.patch
-    ./0009-Don-t-try-to-unmount-nix-or-nix-store.patch
     ./0010-Get-rid-of-a-useless-message-in-user-sessions.patch
     ./0011-hostnamed-localed-timedated-disable-methods-that-cha.patch
     ./0012-Fix-hwdb-paths.patch
@@ -45,7 +44,6 @@ in stdenv.mkDerivation {
     ./0015-catalog-don-t-update-on-install.patch
     ./0016-hwdb-don-t-run-update-on-install.patch
     ./0017-build-don-t-create-statedir-and-don-t-touch-prefixdi.patch
-    ./0018-Fix-mount-option-x-initrd.mount-handling-35268-16.patch
     ./0019-Install-default-configuration-into-out-share-factory.patch
     ./0020-inherit-systemd-environment-when-calling-generators.patch
     ./0021-reintroduce-the-no-such-path-PATH-that-was-dropped-s.patch
