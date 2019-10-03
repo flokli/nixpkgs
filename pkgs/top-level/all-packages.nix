@@ -3524,7 +3524,6 @@ in
     guiSupport = stdenv.isDarwin;
     pinentry = if stdenv.isDarwin then pinentry_mac else pinentry_gtk2;
   };
-  gnupg-minimal = callPackage ../tools/security/gnupg/minimal.nix { };
   gnupg = gnupg22;
 
   gnuplot = libsForQt5.callPackage ../tools/graphics/gnuplot { };
