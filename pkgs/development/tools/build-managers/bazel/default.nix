@@ -437,6 +437,8 @@ stdenv.mkDerivation rec {
     customBash
   ] ++ lib.optionals (stdenv.isDarwin) [ cctools libcxx CoreFoundation CoreServices Foundation ];
 
+  outputs = [ "out" "execlogparser"];
+
   # Bazel makes extensive use of symlinks in the WORKSPACE.
   # This causes problems with infinite symlinks if the build output is in the same location as the
   # Bazel WORKSPACE. This is why before executing the build, the source code is moved into a
@@ -458,6 +460,7 @@ stdenv.mkDerivation rec {
         --output=./bazel_src/output/bazel-complete.bash \
         --prepend=./bazel_src/scripts/bazel-complete-header.bash \
         --prepend=./bazel_src/scripts/bazel-complete-template.bash
+    ./bazel_src/output/bazel build src/tools/execlog:parser
   '';
 
   installPhase = ''
@@ -481,6 +484,10 @@ stdenv.mkDerivation rec {
     mkdir -p $out/share/bash-completion/completions $out/share/zsh/site-functions
     mv ./bazel_src/output/bazel-complete.bash $out/share/bash-completion/completions/bazel
     cp ./bazel_src/scripts/zsh_completion/_bazel $out/share/zsh/site-functions/
+
+    # execution log parser
+    mkdir -p $execlogparser/bin
+    cp ./bazel_src/output/tools/execlog/parser $execlogparser/bin
   '';
 
   doInstallCheck = true;
