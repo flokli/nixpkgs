@@ -208,7 +208,7 @@ let
 
   snakeOilCerts = import ./snakeoil-certs.nix;
 
-  wfeDomain = "acme-v01.api.letsencrypt.org";
+  wfeDomain = "acme-v02.api.letsencrypt.org";
   wfeCertFile = snakeOilCerts.${wfeDomain}.cert;
   wfeKeyFile = snakeOilCerts.${wfeDomain}.key;
 
