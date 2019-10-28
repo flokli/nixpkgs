@@ -498,12 +498,16 @@ class Machine:
         shell_path = os.path.join(self.state_dir, 'shell')
         self.shell_socket = create_socket(shell_path)
 
+        self.sd_bus_socket_path = os.path.join(self.state_dir, 'sd-bus')
+
         qemu_options = ' '.join([
             '' if self.allow_reboot else '-no-reboot',
             '-monitor unix:{}'.format(monitor_path),
             '-chardev socket,id=shell,path={}'.format(shell_path),
-            '-device virtio-serial',
+            '-chardev socket,id=sd_bus,path={},server,nowait'.format(self.sd_bus_socket_path),
+            '-device virtio-serial,max_ports=2',
             '-device virtconsole,chardev=shell',
+            '-device virtconsole,chardev=sd_bus,nr=1',
             '-device virtio-rng-pci',
             '-serial stdio' if 'DISPLAY' in os.environ else '-nographic'
             ]) + ' ' + os.environ.get('QEMU_OPTS', '')

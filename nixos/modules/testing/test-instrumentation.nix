@@ -54,6 +54,14 @@ with import ../../lib/qemu-flags.nix { inherit pkgs; };
     systemd.services."serial-getty@${qemuSerialDevice}".enable = false;
     systemd.services."serial-getty@hvc0".enable = false;
 
+    systemd.services.sd-bus-serial = {
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig.ExecStart = [
+        "${pkgs.coreutils}/bin/stty -F /dev/hvc1 raw"
+        "${pkgs.socat}/bin/socat UNIX-CONNECT:/run/dbus/system_bus_socket /dev/hvc1,raw,echo=0"
+      ];
+    };
+
     # Only use a serial console, no TTY.
     virtualisation.qemu.consoles = [ qemuSerialDevice ];
 
