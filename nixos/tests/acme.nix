@@ -100,6 +100,14 @@ in import ./make-test-python.nix {
 
       with subtest('can request certificate with HTTPS-01 challenge'):
         acmeStandalone.wait_for_unit('default.target')
+        acmeStandalone.succeed('ls -la /dev 1>&2')
+        with acmeStandalone.guest_dbus():
+          from pystemd.systemd1 import Manager
+          manager = Manager()
+          manager.load()
+          import pprint
+          pprint.pprint(manager.Manager.ListUnitFiles())
+        acmeStandalone.succeed('sleep 9999999999')
         acmeStandalone.succeed('systemctl start acme-standalone.com.service')
         acmeStandalone.wait_for_unit('acme-finished-standalone.com.target')
 
