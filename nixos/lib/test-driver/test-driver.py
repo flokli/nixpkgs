@@ -16,6 +16,8 @@ import tempfile
 import time
 import unicodedata
 
+from contextlib import contextmanager
+
 CHAR_TO_KEY = {
     'A': 'shift-a', 'N': 'shift-n',  '-': '0x0C', '_': 'shift-0x0C',
     'B': 'shift-b', 'O': 'shift-o',  '=': '0x0D', '+': 'shift-0x0D',
@@ -328,6 +330,22 @@ class Machine:
                     raise Exception('command `{}` did not succeed (exit code {})'
                                     .format(command, status))
                 return output
+
+    @contextmanager
+    def guest_dbus(self):
+        """
+        Provide a context in which DBUS_SYSTEM_BUS_ADDRESS points to the unix socket
+        forwarded to the dbus system bus socket inside the guest.
+        Useful to invoke pystemd.
+        """
+        if "DBUS_SYSTEM_BUS_ADDRESS" in os.environ:
+            old_dbus_system_bus_address = os.environ["DBUS_SYSTEM_BUS_ADDRESS"]
+        else:
+            old_dbus_system_bus_address = None
+
+        os.environ["DBUS_SYSTEM_BUS_ADDRESS"] = self.sd_bus_socket_path
+        yield
+        os.environ["DBUS_SYSTEM_BUS_ADDRESS"] = old_dbus_system_bus_address
 
     def fail(self, *commands):
         """Execute each command and check that it fails."""
