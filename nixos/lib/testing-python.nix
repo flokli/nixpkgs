@@ -22,7 +22,7 @@ in rec {
   testDriver = stdenv.mkDerivation {
     name = "nixos-test-driver";
 
-    buildInputs = [ makeWrapper python3Full ];
+    buildInputs = [ makeWrapper (python3.withPackages (p : [ p.pystemd ])) ];
 
     dontUnpack = true;
 
