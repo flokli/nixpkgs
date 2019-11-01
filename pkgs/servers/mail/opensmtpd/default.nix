@@ -1,5 +1,5 @@
 { stdenv, fetchurl, autoconf, automake, libtool, bison
-, libasr, libevent, zlib, libressl, openssl, db, pam, nixosTests, fetchFromGitHub
+, libasr, libevent, zlib, libressl, openssl, db, pam, nixosTests, fetchFromGitHub, enableDebugging
 }:
 
 stdenv.mkDerivation rec {
@@ -7,7 +7,7 @@ stdenv.mkDerivation rec {
   version = "6.6.0p1";
 
   nativeBuildInputs = [ autoconf automake libtool bison ];
-  buildInputs = [ libasr libevent zlib libressl db pam ];
+  buildInputs = [ libasr libevent zlib (enableDebugging libressl) db pam ];
 
   #src = fetchurl {
   #  url = "https://www.opensmtpd.org/archives/${pname}-${version}.tar.gz";

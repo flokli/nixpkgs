@@ -29,7 +29,7 @@ in {
 
       package = mkOption {
         type = types.package;
-        default = pkgs.opensmtpd;
+        default = pkgs.enableDebugging pkgs.opensmtpd;
         defaultText = "pkgs.opensmtpd";
         description = "The OpenSMTPD package to use.";
       };

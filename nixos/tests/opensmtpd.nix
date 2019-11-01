@@ -11,7 +11,7 @@ import ./make-test.nix {
           { address = "192.168.1.1"; prefixLength = 24; }
         ];
       };
-      environment.systemPackages = [ pkgs.opensmtpd ];
+      environment.systemPackages = [ pkgs.opensmtpd pkgs.gdb ];
       services.opensmtpd = {
         enable = true;
         extraServerArgs = [ "-v" ];
@@ -36,7 +36,7 @@ import ./make-test.nix {
           { address = "192.168.1.2"; prefixLength = 24; }
         ];
       };
-      environment.systemPackages = [ pkgs.opensmtpd ];
+      environment.systemPackages = [ pkgs.opensmtpd pkgs.gdb ];
       services.opensmtpd = {
         enable = true;
         extraServerArgs = [ "-v" ];
