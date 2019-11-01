@@ -1,5 +1,5 @@
 { stdenv, fetchurl, autoconf, automake, libtool, bison
-, libasr, libevent, zlib, openssl, db, pam, nixosTests
+, libasr, libevent, zlib, libressl, openssl, db, pam, nixosTests, fetchFromGitHub
 }:
 
 stdenv.mkDerivation rec {
@@ -7,11 +7,17 @@ stdenv.mkDerivation rec {
   version = "6.6.0p1";
 
   nativeBuildInputs = [ autoconf automake libtool bison ];
-  buildInputs = [ libasr libevent zlib openssl db pam ];
+  buildInputs = [ libasr libevent zlib libressl db pam ];
 
-  src = fetchurl {
-    url = "https://www.opensmtpd.org/archives/${pname}-${version}.tar.gz";
-    sha256 = "1sgwbvc28h9nyyj4lv8d9b4ilzz03p2j1j763yr759k336a2193m";
+  #src = fetchurl {
+  #  url = "https://www.opensmtpd.org/archives/${pname}-${version}.tar.gz";
+  #  sha256 = "1sgwbvc28h9nyyj4lv8d9b4ilzz03p2j1j763yr759k336a2193m";
+  #};
+  src = fetchFromGitHub {
+    owner = "OpenSMTPD";
+    repo = "OpenSMTPD";
+    rev = "276770264d398fc5a4671da2f31be832472e8b2d";
+    sha256 = "01q50il2nlbqnl2zk7wnid56qzfw54mbxnrfp9913cslb1amavf3";
   };
 
   patches = [
