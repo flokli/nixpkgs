@@ -14,6 +14,7 @@ import sys
 import tempfile
 import time
 import unicodedata
+import ptpython.repl
 
 CHAR_TO_KEY = {
     "A": "shift-a",
@@ -726,12 +727,7 @@ def run_tests():
                 eprint("error: {}".format(str(e)))
                 sys.exit(1)
     else:
-        while True:
-            try:
-                value = input("> ")
-                exec(value)
-            except EOFError:
-                break
+        ptpython.repl.embed(locals(), globals())
 
     # TODO: Collect coverage data
 
