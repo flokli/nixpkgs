@@ -134,7 +134,7 @@ in rec {
       export LD_LIBRARY_PATH="$PWD/build/lib:$LD_LIBRARY_PATH"
       # install target needs to be in PYTHONPATH for "*.pth support" check to succeed
 
-      patchShebangs src/spdk
+      patchShebangs src/script src/spdk src/test src/tools
     '';
 
     cmakeFlags = [
