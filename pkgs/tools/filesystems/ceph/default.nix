@@ -6,6 +6,7 @@
 , libxml2, zlib, lz4
 , openldap, lttng-ust
 , babeltrace, gperf
+, gtest
 , cunit, snappy
 , rocksdb, makeWrapper
 , leveldb, oathToolkit
@@ -114,7 +115,7 @@ in rec {
 
     buildInputs = cryptoLibsMap.${cryptoStr} ++ [
       boost ceph-python-env libxml2 optYasm optLibatomic_ops optLibs3
-      malloc zlib openldap lttng-ust babeltrace gperf cunit
+      malloc zlib openldap lttng-ust babeltrace gperf gtest cunit
       snappy rocksdb lz4 oathToolkit leveldb
     ] ++ optionals stdenv.isLinux [
       linuxHeaders utillinux libuuid udev keyutils optLibaio optLibxfs optZfs
@@ -144,6 +145,8 @@ in rec {
 
 
       "-DWITH_SYSTEM_BOOST=ON"
+      "-DWITH_SYSTEM_ROCKSDB=ON"
+      "-DWITH_SYSTEM_GTEST=ON"
       "-DMGR_PYTHON_VERSION=${ceph-python-env.python.pythonVersion}"
       "-DWITH_SYSTEMD=OFF"
       "-DWITH_TESTS=OFF"
