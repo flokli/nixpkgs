@@ -160,6 +160,8 @@ in rec {
 
     outputs = [ "out" "lib" "dev" "doc" "man" ];
 
+    doCheck = false; # uses pip to install things from the internet
+
     meta = {
       homepage = https://ceph.com/;
       description = "Distributed storage system";
