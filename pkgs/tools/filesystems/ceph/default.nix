@@ -126,9 +126,6 @@ in rec {
     preConfigure =''
       substituteInPlace src/common/module.c --replace "/sbin/modinfo"  "modinfo"
       substituteInPlace src/common/module.c --replace "/sbin/modprobe" "modprobe"
-      # Since Boost 1.67 this seems to have changed
-      substituteInPlace CMakeLists.txt --replace "list(APPEND BOOST_COMPONENTS python)" "list(APPEND BOOST_COMPONENTS python37)"
-      substituteInPlace src/CMakeLists.txt --replace "Boost::python " "Boost::python37 "
 
       # for pybind/rgw to find internal dep
       export LD_LIBRARY_PATH="$PWD/build/lib:$LD_LIBRARY_PATH"
@@ -145,6 +142,7 @@ in rec {
 
 
       "-DWITH_SYSTEM_BOOST=ON"
+      "-DMGR_PYTHON_VERSION=${ceph-python-env.python.pythonVersion}"
       "-DWITH_SYSTEMD=OFF"
       "-DWITH_TESTS=OFF"
       # TODO breaks with sandbox, tries to download stuff with npm
