@@ -8,7 +8,7 @@
 , babeltrace, gperf
 , cunit, snappy
 , rocksdb, makeWrapper
-, leveldb, oathToolkit, removeReferencesTo
+, leveldb, oathToolkit
 
 # Optional Dependencies
 , yasm ? null, fcgi ? null, expat ? null
@@ -115,7 +115,6 @@ in rec {
       boost ceph-python-env libxml2 optYasm optLibatomic_ops optLibs3
       malloc zlib openldap lttng-ust babeltrace gperf cunit
       snappy rocksdb lz4 oathToolkit leveldb
-      removeReferencesTo
     ] ++ optionals stdenv.isLinux [
       linuxHeaders utillinux libuuid udev keyutils optLibaio optLibxfs optZfs
       # ceph 14
@@ -142,6 +141,8 @@ in rec {
     cmakeFlags = [
       "-DWITH_PYTHON3=ON"
       "-DWITH_SYSTEM_ROCKSDB=OFF"
+      "-DCMAKE_INSTALL_DATADIR=${placeholder "lib"}/lib"
+
 
       "-DWITH_SYSTEM_BOOST=ON"
       "-DWITH_SYSTEMD=OFF"
@@ -149,11 +150,6 @@ in rec {
       # TODO breaks with sandbox, tries to download stuff with npm
       "-DWITH_MGR_DASHBOARD_FRONTEND=OFF"
     ];
-
-    preFixup = ''
-      find $lib -type f -exec remove-references-to -t $out '{}' +
-      mv $out/share/ceph/mgr $lib/lib/ceph/
-    '';
 
     postFixup = ''
       export PYTHONPATH="${ceph-python-env}/lib/python3.7/site-packages:$lib/lib/ceph/mgr:$out/lib/python3.7/site-packages/"
