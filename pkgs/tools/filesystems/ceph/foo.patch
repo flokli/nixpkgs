@@ -1,0 +1,18 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 48ff49df83..c5ab02b7b2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -202,8 +202,11 @@ if(WITH_SPDK)
+   if(NOT WITH_BLUESTORE)
+     message(SEND_ERROR "Please enable WITH_BLUESTORE for using SPDK")
+   endif()
+-  include(BuildSPDK)
+-  build_spdk()
++  find_package(dpdk)
++  if(NOT DPDK_FOUND AND NOT TARGET dpdk-ext)
++    include(BuildSPDK)
++    build_spdk()
++  endif()
+   set(HAVE_SPDK TRUE)
+ endif(WITH_SPDK)
+ 

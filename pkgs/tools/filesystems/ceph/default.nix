@@ -9,6 +9,7 @@
 , gtest
 , cunit, snappy
 , rocksdb, makeWrapper
+, dpdk
 , leveldb, oathToolkit
 
 # Optional Dependencies
@@ -104,6 +105,7 @@ in rec {
     patches = [
       ./0000-fix-SPDK-build-env.patch
       ./0000-dont-check-cherrypy-version.patch
+      ./foo.patch
     ];
 
     nativeBuildInputs = [
@@ -116,7 +118,7 @@ in rec {
     buildInputs = cryptoLibsMap.${cryptoStr} ++ [
       boost ceph-python-env libxml2 optYasm optLibatomic_ops optLibs3
       malloc zlib openldap lttng-ust babeltrace gperf gtest cunit
-      snappy rocksdb lz4 oathToolkit leveldb
+      snappy rocksdb lz4 dpdk oathToolkit leveldb
     ] ++ optionals stdenv.isLinux [
       linuxHeaders utillinux libuuid udev keyutils optLibaio optLibxfs optZfs
       # ceph 14
@@ -139,6 +141,7 @@ in rec {
     '';
 
     cmakeFlags = [
+      "-LAH"
       "-DWITH_PYTHON3=ON"
       "-DWITH_SYSTEM_ROCKSDB=OFF"
       "-DCMAKE_INSTALL_DATADIR=${placeholder "lib"}/lib"
