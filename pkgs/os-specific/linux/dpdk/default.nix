@@ -29,8 +29,8 @@ in stdenv.mkDerivation rec {
   mesonFlags = [
     "-Denable_docs=true"
     "-Denable_kmods=${if kernel != null then "true" else "false"}"
-    "-Ddefault_library=${if shared == true then "shared" else "static"}"
   ]
+  ++ lib.optional (shared == false) [ "-Ddefault_library=static" ]
   ++ lib.optional stdenv.isx86_64 "-Dmachine=nehalem"
   ++ lib.optional (kernel != null) "-Dkernel_dir=${kernel.dev}/lib/modules/${kernel.modDirVersion}";
 
