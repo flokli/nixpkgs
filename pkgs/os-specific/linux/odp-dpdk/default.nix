@@ -1,36 +1,29 @@
 { stdenv, fetchurl, autoreconfHook, pkgconfig
-, dpdk, libconfig, libpcap, numactl, openssl
+, dpdk, libconfig, libpcap, numactl, openssl, zlib, libbsd, libelf, jansson
 }: let
-
-  dpdk_17_11 = dpdk.overrideAttrs (old: rec {
-    version = "17.11.6";
+  dpdk_18_11 = dpdk.overrideAttrs (old: rec {
+    version = "18.11.3";
     src = fetchurl {
       url = "https://fast.dpdk.org/rel/dpdk-${version}.tar.xz";
-      sha256 = "0g4l6yjcn17n18c7q1pxkmnj4fg2kiv0krz7n2vjjsb8s6gmbps2";
+      sha256 = "1cdnxpa3chhv43ing6c28a5xhs9g848wdfc2vqlrs3ww6yad09g5";
     };
   });
 
 in stdenv.mkDerivation rec {
   pname = "odp-dpdk";
-  version = "1.19.0.0_DPDK_17.11";
+  version = "1.22.0.0_DPDK_18.11";
 
   src = fetchurl {
     url = "https://git.linaro.org/lng/odp-dpdk.git/snapshot/${pname}-${version}.tar.gz";
-    sha256 = "05bwjaxl9hqc6fbkp95nniq11g3kvzmlxw0bq55i7p2v35nv38px";
+    sha256 = "1m8xhmfjqlj2gkkigq5ka3yh0xgzrcpfpaxp1pnh8d1g99094vbx";
   };
 
   nativeBuildInputs = [ autoreconfHook pkgconfig ];
-  buildInputs = [ dpdk_17_11 libconfig libpcap numactl openssl ];
+  buildInputs = [ dpdk_18_11 libconfig libpcap numactl openssl zlib libbsd libelf jansson ];
 
-  RTE_SDK = "${dpdk_17_11}/share/dpdk";
-  RTE_TARGET = "x86_64-native-linuxapp-gcc";
+  #dontDisableStatic = true;
 
-  dontDisableStatic = true;
-
-  configureFlags = [
-    "--disable-shared"
-    "--with-dpdk-path=${dpdk_17_11}"
-  ];
+  #NIX_LDFLAGS = "-latomic";
 
   meta = with stdenv.lib; {
     description = "Open Data Plane optimized for DPDK";
