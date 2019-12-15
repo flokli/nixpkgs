@@ -1,0 +1,40 @@
+From ad5934d0639ef9e1ead457e0d9b2262730c0095b Mon Sep 17 00:00:00 2001
+From: Florian Klink <flokli@flokli.de>
+Date: Sun, 15 Dec 2019 15:26:00 +0100
+Subject: [PATCH] cmd/link/internal/ld/lib.go: add libc static library path as
+ a default
+
+On NixOS, static libc libraries are in a separate folder,
+causing a go build -ldflags "-linkmode external -extldflags -static"
+to fail to find these libraries.
+However, building fully static binaries is very common in go world.
+Fix this by adding the libc static library path as a default library path.
+---
+ src/cmd/link/internal/ld/lib.go | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
+index 3fa258d..597df97 100644
+--- a/src/cmd/link/internal/ld/lib.go
++++ b/src/cmd/link/internal/ld/lib.go
+@@ -1285,6 +1285,17 @@ func (ctxt *Link) hostlink() {
+ 	if objabi.GOOS == "windows" && runtime.GOOS == "windows" && filepath.Ext(outopt) == "" {
+ 		outopt += "."
+ 	}
++
++	// On NixOS, static libc libraries are in a separate folder,
++	// causing a go build -ldflags "-linkmode external -extldflags -static"
++	// to fail to find these libraries.
++	// However, building fully static binaries is very common in go world.
++	// Fix this by adding the libc static library path as a default library path.
++	if objabi.GOOS == "linux" {
++		argv = append(argv, "-L@libcStaticLibdir@")
++	}
++
++
+ 	argv = append(argv, "-o")
+ 	argv = append(argv, outopt)
+ 
+-- 
+2.24.1
+

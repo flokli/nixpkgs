@@ -1,7 +1,7 @@
 { stdenv, fetchurl, tzdata, iana-etc, runCommand
 , perl, which, pkgconfig, patch, procps, pcre, cacert, Security, Foundation
 , mailcap, runtimeShell
-, buildPackages, pkgsTargetTarget
+, buildPackages, pkgsTargetTarget, substituteAll
 }:
 
 let
@@ -140,6 +140,11 @@ stdenv.mkDerivation rec {
     ./skip-nohup-tests.patch
     # breaks under load: https://github.com/golang/go/issues/25628
     ./skip-test-extra-files-on-386.patch
+
+    (substituteAll {
+      src = ./0001-cmd-link-internal-ld-lib.go-add-libc-static-library-.patch;
+      libcStaticLibdir = "${stdenv.cc.libc.static}/lib/";
+    })
   ];
 
   postPatch = ''
