@@ -12,6 +12,10 @@ stdenv.mkDerivation rec {
     sha256 = "0czq73m92ngf30asdzrfkzraag95hlrr74imbanqq25kdim8qhin";
   };
 
+  postInstall = ''
+    install -D -t $out/lib/udev/rules.d doc/40-dfuse.rules
+  '';
+
   meta = with stdenv.lib; {
     description = "Device firmware update (DFU) USB programmer";
     longDescription = ''
