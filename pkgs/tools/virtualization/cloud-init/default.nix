@@ -1,18 +1,21 @@
-{ lib, pythonPackages, fetchurl, cloud-utils }:
+{ lib, python3Packages, fetchFromGitHub, cloud-utils }:
 
-let version = "0.7.9";
+let version = "19.4";
 
-in pythonPackages.buildPythonApplication {
+in python3Packages.buildPythonApplication {
   pname = "cloud-init";
   inherit version;
   namePrefix = "";
 
-  src = fetchurl {
-    url = "https://launchpad.net/cloud-init/trunk/${version}/+download/cloud-init-${version}.tar.gz";
-    sha256 = "0wnl76pdcj754pl99wxx76hkir1s61x0bg0lh27sdgdxy45vivbn";
+  src = fetchFromGitHub {
+    owner = "canonical";
+    repo = "cloud-init";
+    rev = version;
+    sha256 = "0nd5v4xd8f1lmd0ivhrrxk8yj35z7sclpxv9qxbkyw6jl10328pz";
   };
 
   patches = [ ./add-nixos-support.patch ];
+
   prePatch = ''
     patchShebangs ./tools
 
@@ -24,16 +27,21 @@ in pythonPackages.buildPythonApplication {
 
     substituteInPlace cloudinit/config/cc_growpart.py \
       --replace 'util.subp(["growpart"' 'util.subp(["${cloud-utils}/bin/growpart"'
-
-    # Argparse is part of python stdlib
-    sed -i s/argparse// requirements.txt
     '';
 
-  propagatedBuildInputs = with pythonPackages; [ cheetah jinja2 prettytable
-    oauthlib pyserial configobj pyyaml requests jsonpatch ];
+  propagatedBuildInputs = with python3Packages; [
+    jinja2
+    oauthlib
+    pyserial
+    configobj
+    pyyaml
+    requests
+    jsonpatch
+    jsonschema
+    six
+  ];
 
-  checkInputs = with pythonPackages; [ contextlib2 httpretty mock unittest2 ];
-
+  checkInputs = with python3Packages; [ contextlib2 httpretty mock unittest2 ];
   doCheck = false;
 
   meta = {
