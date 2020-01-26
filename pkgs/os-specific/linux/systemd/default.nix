@@ -43,22 +43,74 @@ in stdenv.mkDerivation {
   };
 
   patches = [
+    # I heard rumours this is also an upstream discussion. But what bug does this fix?
+    # can we fix this by building systemd with crypttab support enabled, and having NixOS
+    # properly populate /etc/crypttab?
     ./0001-Start-device-units-for-uninitialised-encrypted-devic.patch
-    ./0003-Don-t-try-to-unmount-nix-or-nix-store.patch
+
+    ./0003-Don-t-try-to-unmount-nix-or-nix-store.patch # x-initrd ?
+
+    # Does this still apply? If yes (and too complicated to check for bind
+    # mounts), can we add a command line argument to nspawn to ignore the
+    # check?
+    # this seems to be not the init script, but /etc/os-release
     ./0004-Fix-NixOS-containers.patch
+
+    # What other occurences of /sbin/… are there in systemd?
+    # Can /sbin be overridden by meson? Or do we want to look these things up
+    # from $PATH?
     ./0006-Look-for-fsck-in-the-right-place.patch
+
+    # As for some of the path *removals*:
+    # These are probably micro-optimizations, we can just include
+    # As for the addition of /etc/systemd-mutable/ (and the per-user equivalent)
+    # This seems to be only used for dysnomia. Can we solve this more
+    # elegantly, while still having /etc/ mostly read-only?
+    # in the very future, we might want to have NixOS populate in
+    # /usr/lib/systemd/system (or another, more NixOS-y path), and make
+    # /etc/systemd/system mutable (maybe behind a warning knob)
     ./0007-Add-some-NixOS-specific-unit-directories.patch
-    ./0009-Get-rid-of-a-useless-message-in-user-sessions.patch
+
+    ./0009-Get-rid-of-a-useless-message-in-user-sessions.patch # x-initrd ?
+
+    # Most of these files are read-only on NixOS.
+    # Check if the error messages are good enough, upstream if they aren't,
+    # then drop that patch.
     ./0010-hostnamed-localed-timedated-disable-methods-that-cha.patch
+
+    # Probably micro-optimization and droppable.
     ./0011-Fix-hwdb-paths.patch
+
+    # Should this be configurable through meson?
     ./0012-Change-usr-share-zoneinfo-to-etc-zoneinfo.patch
+
+    # Should this be configurable through meson?
+    # meson knob to change /usr/share
     ./0013-localectl-use-etc-X11-xkb-for-list-x11.patch
+
+    # This could probably work by setting DESTDIR to an empty string
+    # Ask on ML: This should probably be created at boot, why is it part of the build system?
     ./0016-build-don-t-create-statedir-and-don-t-touch-prefixdi.patch
+
+    # introduces factoryconfdir
+    # This should just be DESTDIR
+    # TODO: follow up with Mic92
     ./0018-Install-default-configuration-into-out-share-factory.patch
+
+    # probably similar question as 0006-*?
     ./0019-inherit-systemd-environment-when-calling-generators.patch
+
+    # we should chase usages of these constants, not have things fail at runtime!
     ./0020-reintroduce-the-no-such-path-PATH-that-was-dropped-s.patch
+
+    # far future: add nixos-specific stuff like /etc/systemd-mutable stuff in here,
+    # and chase hardcoded paths inside systemd src
     ./0021-add-rootprefix-to-lookup-dir-paths.patch
+
+    # Might be useful upstream too (just needs to be added to the docs?)
     ./0022-systemd-shutdown-execute-scripts-in-etc-systemd-syst.patch
+
+    # Might be useful upstream too (just needs to be added to the docs?)
     ./0023-systemd-sleep-execute-scripts-in-etc-systemd-system-.patch
 
     # NixOS-specific patches
@@ -270,6 +322,7 @@ in stdenv.mkDerivation {
   # The reference will be replaced by the same reference the usual nukeRefs
   # tooling uses.  The standard tooling can not / should not be uesd since it
   # is a bit too excessive and could potentially do us some (more) harm.
+  # TODO: check if it's still an issue, check with another linker, maybe binutils bug?
   postFixup = ''
     nukedRef=$(echo $out | sed -e "s,$NIX_STORE/[^-]*-\(.*\),$NIX_STORE/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-\1,")
     cat $lib/lib/libsystemd.so | perl -pe "s|$out/lib/systemd/catalog|$nukedRef/lib/systemd/catalog|" > $lib/lib/libsystemd.so.tmp
