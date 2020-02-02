@@ -29,6 +29,9 @@ let
     # can also get around it by unsetting GOPATH entirely, since rules_go
     # doesn't need it.
     export GOPATH=
+
+    # set to 1980, otherwise python complains
+    export SOURCE_DATE_EPOCH=315532800
   '';
 
 in buildBazelPackage rec {
@@ -38,8 +41,8 @@ in buildBazelPackage rec {
   src = fetchFromGitHub {
     owner = "google";
     repo  = "gvisor";
-    rev   = "release-20191114.0";
-    sha256 = "0kyixjjlws9iz2r2srgpdd4rrq94vpxkmh2rmmzxd9mcqy2i9bg1";
+    rev   = "release-20200127.0";
+    sha256 = "1gcbc661c6m630r001kcnri41vxg0yz7d74nwqfx9qg55lbkjacq";
   };
 
   nativeBuildInputs = [ git glibcLocales go makeWrapper python3 ];
@@ -74,9 +77,14 @@ in buildBazelPackage rec {
 
       # Remove log file(s)
       rm -f "$bazelOut"/java.log "$bazelOut"/java.log.*
+
+      # Remove .cache/pip and friends
+      rm -rf ".cache/pip"
+
+      find . -type f -exec sha256sum "{}" +
     '';
 
-    sha256 = "122qk6iv8hd7g2a84y9aqqhij4r0m47vpxzbqhhh6k5livc73qd6";
+    sha256 = "0000000000000000000000000000000000000000000000000000";
   };
 
   buildAttrs = {
