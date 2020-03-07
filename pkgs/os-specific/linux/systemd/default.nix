@@ -7,6 +7,7 @@
 , gettext, docbook_xsl, docbook_xml_dtd_42, docbook_xml_dtd_45
 , ninja, meson, python3Packages, glibcLocales
 , patchelf
+, substituteAll
 , getent
 , buildPackages
 , perl
@@ -30,7 +31,7 @@ let gnupg-minimal = gnupg.override {
   bzip2 = null;
 };
 in stdenv.mkDerivation {
-  version = "243.7";
+  version = "244.3";
   pname = "systemd";
 
   # When updating, use https://github.com/systemd/systemd-stable tree, not the development one!
@@ -38,8 +39,8 @@ in stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "systemd";
     repo = "systemd-stable";
-    rev = "f8dd0f2f15a566ede668c59e3c810c61f9d62c51";
-    sha256 = "1alvvciddg36by1bgzi8aarnms4crzqqyizj3nhlddh35pgpwvdk";
+    rev = "c4280c342bbf4fa8da833103482362236c18f835";
+    sha256 = "0y83nsrbdn0y3wfyfx53ac8c3wy9jrra86aaxix568vigi48g9zi";
   };
 
   patches = [
@@ -100,9 +101,6 @@ in stdenv.mkDerivation {
     # probably similar question as 0006-*?
     ./0019-inherit-systemd-environment-when-calling-generators.patch
 
-    # we should chase usages of these constants, not have things fail at runtime!
-    ./0020-reintroduce-the-no-such-path-PATH-that-was-dropped-s.patch
-
     # far future: add nixos-specific stuff like /etc/systemd-mutable stuff in here,
     # and chase hardcoded paths inside systemd src
     ./0021-add-rootprefix-to-lookup-dir-paths.patch
@@ -115,7 +113,15 @@ in stdenv.mkDerivation {
 
     # NixOS-specific patches
     ./kmod-static-nodes.service-Update-ConditionFileNotEmpty.patch
+
+    # TODO: check if we need more than that
+    # we can't use placeholder in substituteAll here
+    ./path-util.h-add-placeholder-for-DEFAULT_PATH_NORMAL.patch
   ];
+
+  postPatch = ''
+    substituteInPlace src/basic/path-util.h --replace "@defaultPathNormal@" "${placeholder "out"}/bin/"
+  '';
 
   outputs = [ "out" "lib" "man" "dev" ];
 
