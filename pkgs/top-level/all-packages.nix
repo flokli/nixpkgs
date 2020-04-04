@@ -8902,6 +8902,8 @@ in
     inherit (ocaml-ng.ocamlPackages_4_05) ocaml;
   };
 
+  p4c = callPackage ../development/compilers/p4c { };
+
   pforth = callPackage ../development/compilers/pforth {};
 
   picat = callPackage ../development/compilers/picat { };
