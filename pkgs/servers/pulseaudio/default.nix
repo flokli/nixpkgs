@@ -4,6 +4,7 @@
 , avahi, libjack2, libasyncns, lirc, dbus
 , sbc, bluez5, udev, openssl, fftwFloat
 , speexdsp, systemd, webrtc-audio-processing
+, libopenaptx
 
 , x11Support ? false
 
@@ -46,7 +47,7 @@ stdenv.mkDerivation rec {
     lib.optionals stdenv.isLinux [ libcap ];
 
   buildInputs =
-    [ libtool libsndfile speexdsp fftwFloat ]
+    [ libtool libopenaptx libsndfile speexdsp fftwFloat ]
     ++ lib.optionals stdenv.isLinux [ glib dbus ]
     ++ lib.optionals stdenv.isDarwin [ CoreServices AudioUnit Cocoa ]
     ++ lib.optionals (!libOnly) (
@@ -60,6 +61,20 @@ stdenv.mkDerivation rec {
       ++ lib.optional remoteControlSupport lirc
       ++ lib.optional zeroconfSupport  avahi
   );
+
+  patches = [
+    ./0001-bluetooth-Implement-reading-SO_TIMESTAMP-for-A2DP-so.patch
+    ./0002-bluetooth-Print-SO_TIMESTAMP-warning-for-SCO-source-.patch
+    ./0003-bluetooth-Parse-remote-timestamp-from-A2DP-RTP-packe.patch
+    ./0004-bluetooth-Set-initial-A2DP-profile-which-bluez-alrea.patch
+    ./0005-bluetooth-Add-A2DP-aptX-and-aptX-HD-codecs-support.patch
+    ./0006-bluetooth-Add-A2DP-FastStream-codec-support.patch
+    ./0007-bluetooth-Add-more-variants-of-SBC-codec.patch
+    ./0008-bluetooth-policy-Reflect-a2dp-profile-names.patch
+    ./0009-bluetooth-Implement-A2DP-codec-switching-and-backcha.patch
+    ./0010-bluetooth-policy-Treat-bi-directional-A2DP-profiles-.patch
+    ./0011-bluetooth-Added-2-eXtreme-Quality-SBC-A2DP-profiles-.patch
+  ];
 
   autoreconfPhase = ''
     # Performs an autoreconf

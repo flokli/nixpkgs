@@ -1,0 +1,210 @@
+From a2a42877af4f38cd4343f404b9e312c81ebabe10 Mon Sep 17 00:00:00 2001
+From: Vladimir <amigo.elite@gmail.com>
+Date: Fri, 26 Jul 2019 01:14:52 +0300
+Subject: [PATCH 11/11] bluetooth: Added 2 eXtreme Quality SBC A2DP profiles
+ and a tip for BlueZ
+
+eXtreme Quality profile 3 is supported by almost any A2DP device and provides
+much better sound quality than existing eXtreme Quality profile 2 but requires
+a bit higher bandwidth for SBC.
+
+eXtreme eXtreme Quality profile utilizes Bluetooth theoretical maximum
+bitpool for near-lossless quality, but this profile most probably is not
+supported by any consumer-grade A2DP devices not just because it requires
+a lot more bandwidth but because of standard requirements. Need to
+mention that I successfully managed to transmit and decode sound using
+this SBC profile to a virtual Bluetooth A2DP emulator, so it has the
+right to exist and end-users most probably will never see it in a Bluetooth
+A2DP PulseAudio card configuration profiles.
+
+Also, add a small notice about BlueZ run options to make possible A2DP
+profile switching (it takes much time to figure out how to get it done).
+---
+ src/modules/bluetooth/a2dp-codec-sbc.c       | 95 ++++++++++++++++++++
+ src/modules/bluetooth/a2dp-codec-util.c      |  4 +
+ src/modules/bluetooth/module-bluez5-device.c |  2 +-
+ 3 files changed, 100 insertions(+), 1 deletion(-)
+
+diff --git a/src/modules/bluetooth/a2dp-codec-sbc.c b/src/modules/bluetooth/a2dp-codec-sbc.c
+index 8db3416b9..fac5f2ab3 100644
+--- a/src/modules/bluetooth/a2dp-codec-sbc.c
++++ b/src/modules/bluetooth/a2dp-codec-sbc.c
+@@ -77,6 +77,21 @@ static const a2dp_sbc_t sbc_xq2_caps_table[] = {
+     FIXED_SBC_CAPS(SBC_CHANNEL_MODE_MONO,         SBC_SAMPLING_FREQ_44100, 37), /* 226   kbps */
+     FIXED_SBC_CAPS(SBC_CHANNEL_MODE_MONO,         SBC_SAMPLING_FREQ_48000, 37), /* 246   kbps */
+ };
++
++static const a2dp_sbc_t sbc_xq3_caps_table[] = {
++    FIXED_SBC_CAPS(SBC_CHANNEL_MODE_DUAL_CHANNEL, SBC_SAMPLING_FREQ_44100, 53), /* 617.4 kbps */
++    FIXED_SBC_CAPS(SBC_CHANNEL_MODE_DUAL_CHANNEL, SBC_SAMPLING_FREQ_48000, 53),
++    FIXED_SBC_CAPS(SBC_CHANNEL_MODE_MONO,         SBC_SAMPLING_FREQ_44100, 53),
++    FIXED_SBC_CAPS(SBC_CHANNEL_MODE_MONO,         SBC_SAMPLING_FREQ_48000, 53),
++};
++
++static const a2dp_sbc_t sbc_xxq_caps_table[] = {
++    FIXED_SBC_CAPS(SBC_CHANNEL_MODE_DUAL_CHANNEL, SBC_SAMPLING_FREQ_44100, 128), /* 1444.275 kbps */
++    FIXED_SBC_CAPS(SBC_CHANNEL_MODE_DUAL_CHANNEL, SBC_SAMPLING_FREQ_48000, 128),
++    FIXED_SBC_CAPS(SBC_CHANNEL_MODE_MONO,         SBC_SAMPLING_FREQ_44100, 128),
++    FIXED_SBC_CAPS(SBC_CHANNEL_MODE_MONO,         SBC_SAMPLING_FREQ_48000, 128),
++};
++
+ /* In most cases bluetooth headsets would support only sbc dual channel mode
+  * for 2 channels as they have limited maximal bitpool value to 53.
+  * We need to define it in two tables to disallow invalid combination of
+@@ -186,6 +201,14 @@ static bool can_accept_capabilities_xq2(const uint8_t *capabilities_buffer, uint
+     return can_accept_capabilities_table(capabilities_buffer, capabilities_size, sbc_xq2_caps_table, PA_ELEMENTSOF(sbc_xq2_caps_table));
+ }
+ 
++static bool can_accept_capabilities_xq3(const uint8_t *capabilities_buffer, uint8_t capabilities_size, bool for_encoding) {
++    return can_accept_capabilities_table(capabilities_buffer, capabilities_size, sbc_xq3_caps_table, PA_ELEMENTSOF(sbc_xq3_caps_table));
++}
++
++static bool can_accept_capabilities_xxq(const uint8_t *capabilities_buffer, uint8_t capabilities_size, bool for_encoding) {
++    return can_accept_capabilities_table(capabilities_buffer, capabilities_size, sbc_xxq_caps_table, PA_ELEMENTSOF(sbc_xxq_caps_table));
++}
++
+ static const char *choose_remote_endpoint_table(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, const a2dp_sbc_t capabilities_table[], unsigned capabilities_table_elements) {
+     const pa_a2dp_codec_capabilities *a2dp_capabilities;
+     const a2dp_sbc_t *capabilities;
+@@ -292,6 +315,14 @@ static const char *choose_remote_endpoint_xq2(const pa_hashmap *capabilities_has
+     return choose_remote_endpoint_table(capabilities_hashmap, default_sample_spec, sbc_xq2_caps_table, PA_ELEMENTSOF(sbc_xq2_caps_table));
+ }
+ 
++static const char *choose_remote_endpoint_xq3(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding) {
++    return choose_remote_endpoint_table(capabilities_hashmap, default_sample_spec, sbc_xq3_caps_table, PA_ELEMENTSOF(sbc_xq3_caps_table));
++}
++
++static const char *choose_remote_endpoint_xxq(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding) {
++    return choose_remote_endpoint_table(capabilities_hashmap, default_sample_spec, sbc_xxq_caps_table, PA_ELEMENTSOF(sbc_xxq_caps_table));
++}
++
+ static const char *choose_remote_endpoint(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding) {
+     return choose_remote_endpoint_table(capabilities_hashmap, default_sample_spec, sbc_auto_caps_table, PA_ELEMENTSOF(sbc_auto_caps_table));
+ }
+@@ -343,6 +374,14 @@ static uint8_t fill_capabilities_xq2(uint8_t capabilities_buffer[MAX_A2DP_CAPS_S
+     return fill_capabilities_table(capabilities_buffer, sbc_xq2_caps_table, PA_ELEMENTSOF(sbc_xq2_caps_table));
+ }
+ 
++static uint8_t fill_capabilities_xq3(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SIZE]) {
++    return fill_capabilities_table(capabilities_buffer, sbc_xq3_caps_table, PA_ELEMENTSOF(sbc_xq3_caps_table));
++}
++
++static uint8_t fill_capabilities_xxq(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SIZE]) {
++    return fill_capabilities_table(capabilities_buffer, sbc_xxq_caps_table, PA_ELEMENTSOF(sbc_xxq_caps_table));
++}
++
+ static uint8_t fill_capabilities(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SIZE]) {
+     return fill_capabilities_table(capabilities_buffer, sbc_auto_caps_table, PA_ELEMENTSOF(sbc_auto_caps_table));
+ }
+@@ -455,6 +494,14 @@ static bool is_configuration_valid_xq2(const uint8_t *config_buffer, uint8_t con
+     return is_configuration_valid_table(config_buffer, config_size, sbc_xq2_caps_table, PA_ELEMENTSOF(sbc_xq2_caps_table));
+ }
+ 
++static bool is_configuration_valid_xq3(const uint8_t *config_buffer, uint8_t config_size) {
++    return is_configuration_valid_table(config_buffer, config_size, sbc_xq3_caps_table, PA_ELEMENTSOF(sbc_xq3_caps_table));
++}
++
++static bool is_configuration_valid_xxq(const uint8_t *config_buffer, uint8_t config_size) {
++    return is_configuration_valid_table(config_buffer, config_size, sbc_xxq_caps_table, PA_ELEMENTSOF(sbc_xxq_caps_table));
++}
++
+ static uint8_t fill_preferred_configuration_table(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE], const a2dp_sbc_t capabilities_table[], unsigned capabilities_table_elements) {
+     a2dp_sbc_t *config = (a2dp_sbc_t *) config_buffer;
+     const a2dp_sbc_t *capabilities = (const a2dp_sbc_t *) capabilities_buffer;
+@@ -614,6 +661,14 @@ static uint8_t fill_preferred_configuration_xq2(const pa_sample_spec *default_sa
+     return fill_preferred_configuration_table(default_sample_spec, capabilities_buffer, capabilities_size, config_buffer, sbc_xq2_caps_table, PA_ELEMENTSOF(sbc_xq2_caps_table));
+ }
+ 
++static uint8_t fill_preferred_configuration_xq3(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
++    return fill_preferred_configuration_table(default_sample_spec, capabilities_buffer, capabilities_size, config_buffer, sbc_xq3_caps_table, PA_ELEMENTSOF(sbc_xq3_caps_table));
++}
++
++static uint8_t fill_preferred_configuration_xxq(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
++    return fill_preferred_configuration_table(default_sample_spec, capabilities_buffer, capabilities_size, config_buffer, sbc_xxq_caps_table, PA_ELEMENTSOF(sbc_xxq_caps_table));
++}
++
+ static uint8_t default_bitpool(uint8_t freq, uint8_t mode) {
+     /* These bitpool values were chosen based on the A2DP spec recommendation */
+     switch (freq) {
+@@ -1146,3 +1201,43 @@ const pa_a2dp_codec pa_a2dp_codec_sbc_xq2 = {
+     .encode_buffer = encode_buffer,
+     .decode_buffer = decode_buffer,
+ };
++
++const pa_a2dp_codec pa_a2dp_codec_sbc_xq3 = {
++    .name = "sbc_xq3",
++    .description = "SBC (eXtreme Quality profile 3)",
++    .id = { A2DP_CODEC_SBC, 0, 0 },
++    .support_backchannel = false,
++    .can_accept_capabilities = can_accept_capabilities_xq3,
++    .choose_remote_endpoint = choose_remote_endpoint_xq3,
++    .fill_capabilities = fill_capabilities_xq3,
++    .is_configuration_valid = is_configuration_valid_xq3,
++    .fill_preferred_configuration = fill_preferred_configuration_xq3,
++    .init = init,
++    .deinit = deinit,
++    .reset = reset,
++    .get_read_block_size = get_block_size,
++    .get_write_block_size = get_block_size,
++    .reduce_encoder_bitrate = reduce_encoder_bitrate_none,
++    .encode_buffer = encode_buffer,
++    .decode_buffer = decode_buffer,
++};
++
++const pa_a2dp_codec pa_a2dp_codec_sbc_xxq = {
++    .name = "sbc_xxq",
++    .description = "SBC (eXtreme eXtreme Quality)",
++    .id = { A2DP_CODEC_SBC, 0, 0 },
++    .support_backchannel = false,
++    .can_accept_capabilities = can_accept_capabilities_xxq,
++    .choose_remote_endpoint = choose_remote_endpoint_xxq,
++    .fill_capabilities = fill_capabilities_xxq,
++    .is_configuration_valid = is_configuration_valid_xxq,
++    .fill_preferred_configuration = fill_preferred_configuration_xxq,
++    .init = init,
++    .deinit = deinit,
++    .reset = reset,
++    .get_read_block_size = get_block_size,
++    .get_write_block_size = get_block_size,
++    .reduce_encoder_bitrate = reduce_encoder_bitrate_none,
++    .encode_buffer = encode_buffer,
++    .decode_buffer = decode_buffer,
++};
+diff --git a/src/modules/bluetooth/a2dp-codec-util.c b/src/modules/bluetooth/a2dp-codec-util.c
+index e801cf9c1..0a8d27f87 100644
+--- a/src/modules/bluetooth/a2dp-codec-util.c
++++ b/src/modules/bluetooth/a2dp-codec-util.c
+@@ -36,6 +36,8 @@ extern const pa_a2dp_codec pa_a2dp_codec_aptx;
+ extern const pa_a2dp_codec pa_a2dp_codec_sbc_hq;
+ extern const pa_a2dp_codec pa_a2dp_codec_sbc_xq1;
+ extern const pa_a2dp_codec pa_a2dp_codec_sbc_xq2;
++extern const pa_a2dp_codec pa_a2dp_codec_sbc_xq3;
++extern const pa_a2dp_codec pa_a2dp_codec_sbc_xxq;
+ #ifdef HAVE_OPENAPTX
+ extern const pa_a2dp_codec pa_a2dp_codec_aptx_hd;
+ #endif
+@@ -56,6 +58,8 @@ const pa_a2dp_codec *pa_a2dp_codecs[] = {
+ #endif
+     &pa_a2dp_codec_sbc_xq1,     /* SBC-XQ has similar quality as aptX HD */
+     &pa_a2dp_codec_sbc_xq2,     /* SBC-XQ has similar quality as aptX HD */
++    &pa_a2dp_codec_sbc_xq3,     /* SBC-XQ has similar quality to lossless */
++    &pa_a2dp_codec_sbc_xxq,     /* SBC-XQ has similar quality to lossless */
+ };
+ 
+ unsigned int pa_bluetooth_a2dp_codec_count(void) {
+diff --git a/src/modules/bluetooth/module-bluez5-device.c b/src/modules/bluetooth/module-bluez5-device.c
+index 856f6a149..552a4d001 100644
+--- a/src/modules/bluetooth/module-bluez5-device.c
++++ b/src/modules/bluetooth/module-bluez5-device.c
+@@ -2223,7 +2223,7 @@ static int add_card(struct userdata *u) {
+          */
+         unsigned i, count;
+ 
+-        pa_log_warn("Detected old bluez version, changing A2DP codec is not possible");
++        pa_log_warn("Detected old bluez version, changing A2DP codec is not possible, try use BlueZ >= 5.50 with -E option enabled for running bluetoothd");
+         u->support_a2dp_codec_switch = false;
+ 
+         count = pa_bluetooth_profile_count();
+-- 
+2.25.1
+
