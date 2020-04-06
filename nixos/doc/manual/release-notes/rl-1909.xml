@@ -897,6 +897,15 @@
       in their docs.</link>
      </para>
     </listitem>
+    <listitem>
+     <para>
+      The Gitea module has been updated to use the
+      <literal>services.{mysql,postgresql}.ensure{Databases,Users}</literal> module options to initialize
+      databases and database users, instead of the previous custom postgresql-initialization logic.
+      Note you might need to update your configuration if you previously had configured Gitea to run as
+      another user than the database user.
+     </para>
+    </listitem>
   </itemizedlist>
  </section>
 </section>
