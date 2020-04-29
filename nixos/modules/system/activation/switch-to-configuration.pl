@@ -168,12 +168,14 @@ while (my ($unit, $state) = each %{$activePrev}) {
     $baseName =~ s/\.[a-z]*$//;
 
     if (-e $prevUnitFile && ($state->{state} eq "active" || $state->{state} eq "activating")) {
+        # register disappeared unit files for stopping, if they don't have X-StopOnRemoval set to false
         if (! -e $newUnitFile || abs_path($newUnitFile) eq "/dev/null") {
             my $unitInfo = parseUnit($prevUnitFile);
             $unitsToStop{$unit} = 1 if boolIsTrue($unitInfo->{'X-StopOnRemoval'} // "yes");
+            next;
         }
 
-        elsif ($unit =~ /\.target$/) {
+        if ($unit =~ /\.target$/) {
             my $unitInfo = parseUnit($newUnitFile);
 
             # Cause all active target units to be restarted below.
