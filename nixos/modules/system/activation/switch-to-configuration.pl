@@ -212,9 +212,10 @@ while (my ($unit, $state) = each %{$activePrev}) {
             if (boolIsTrue($unitInfo->{'X-StopOnReconfiguration'} // "no")) {
                 $unitsToStop{$unit} = 1;
             }
+            next;
         }
 
-        elsif (fingerprintUnit($prevUnitFile) ne fingerprintUnit($newUnitFile)) {
+        if (fingerprintUnit($prevUnitFile) ne fingerprintUnit($newUnitFile)) {
             if ($unit =~ /\.mount$/) {
                 # Reload the changed mount unit to force a remount.
                 $unitsToReload{$unit} = 1;
