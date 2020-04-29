@@ -178,6 +178,11 @@ while (my ($unit, $state) = each %{$activePrev}) {
         if ($unit =~ /\.target$/) {
             my $unitInfo = parseUnit($newUnitFile);
 
+            if ($unit eq "sysinit.target" || $unit eq "basic.target" || $unit eq "multi-user.target" || $unit eq "graphical.target") {
+                # Do nothing.  These cannot be restarted directly.
+                next;
+            }
+
             # Cause all active target units to be restarted below.
             # This should start most changed units we stop here as
             # well as any new dependencies (including new mounts and
@@ -210,9 +215,7 @@ while (my ($unit, $state) = each %{$activePrev}) {
         }
 
         elsif (fingerprintUnit($prevUnitFile) ne fingerprintUnit($newUnitFile)) {
-            if ($unit eq "sysinit.target" || $unit eq "basic.target" || $unit eq "multi-user.target" || $unit eq "graphical.target") {
-                # Do nothing.  These cannot be restarted directly.
-            } elsif ($unit =~ /\.mount$/) {
+            if ($unit =~ /\.mount$/) {
                 # Reload the changed mount unit to force a remount.
                 $unitsToReload{$unit} = 1;
                 recordUnit($reloadListFile, $unit);
