@@ -1,8 +1,10 @@
 # PHP
 
-## Using PHP
+## User Guide
 
-### PHP Overview
+### Using PHP
+
+#### Overview
 
 Several versions of PHP are available on Nix, each of which having a
 wide variety of extensions and libraries available.
@@ -34,7 +36,7 @@ opcache extension shipped with PHP is available at
 `php.extensions.opcache` and the third-party ImageMagick extension at
 `php.extensions.imagick`.
 
-### Installing PHP with extensions
+#### Installing PHP with extensions
 
 A PHP package with specific extensions enabled can be built using
 `php.withExtensions`. This is a function which accepts an anonymous
@@ -87,7 +89,7 @@ php.buildEnv {
 }
 ```
 
-#### Example setup for `phpfpm`
+##### Example setup for `phpfpm`
 
 You can use the previous examples in a `phpfpm` pool called `foo` as
 follows:
@@ -111,7 +113,7 @@ in {
 };
 ```
 
-#### Example usage with `nix-shell`
+##### Example usage with `nix-shell`
 
 This brings up a temporary environment that contains a PHP interpreter
 with the extensions `imagick` and `opcache` enabled:
