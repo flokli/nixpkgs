@@ -503,7 +503,8 @@ class Machine:
                 self.send_key(char)
 
     def wait_for_file(self, filename: str) -> None:
-        """Waits until the file exists in machine's file system."""
+        """Waits until the file exists in machine's file system.
+        Throws an exception on timeout."""
 
         def check_file(_: Any) -> bool:
             status, _ = self.execute("test -e {}".format(filename))
@@ -513,6 +514,9 @@ class Machine:
             retry(check_file)
 
     def wait_for_open_port(self, port: int) -> None:
+        """Waits for a tcp port to be open.
+        Throws an exception on timeout."""
+
         def port_is_open(_: Any) -> bool:
             status, _ = self.execute("nc -z localhost {}".format(port))
             return status == 0
@@ -521,20 +525,26 @@ class Machine:
             retry(port_is_open)
 
     def wait_for_closed_port(self, port: int) -> None:
+        """Waits for a tcp port to be closed.
+        Throws an exception on timeout."""
+
         def port_is_closed(_: Any) -> bool:
             status, _ = self.execute("nc -z localhost {}".format(port))
             return status != 0
 
         retry(port_is_closed)
 
-    def start_job(self, jobname: str, user: Optional[str] = None) -> Tuple[int, str]:
-        return self.systemctl("start {}".format(jobname), user)
+    def start_unit(self, unit_name: str, user: Optional[str] = None) -> Tuple[int, str]:
+        """Start a systemd system unit, or user unit if user is passed."""
+        return self.systemctl("start {}".format(unit_name), user)
 
-    def stop_job(self, jobname: str, user: Optional[str] = None) -> Tuple[int, str]:
-        return self.systemctl("stop {}".format(jobname), user)
+    def stop_unit(self, unit_name: str, user: Optional[str] = None) -> Tuple[int, str]:
+        """Stop a systemd system unit, or user unit if user is passed."""
+        return self.systemctl("stop {}".format(unit_name), user)
 
-    def wait_for_job(self, jobname: str) -> None:
-        self.wait_for_unit(jobname)
+    wait_for_job = wait_for_unit
+    start_job = start_unit
+    stop_job = stop_unit
 
     def connect(self) -> None:
         if self.connected:
@@ -553,6 +563,8 @@ class Machine:
             self.connected = True
 
     def screenshot(self, filename: str) -> None:
+        """Creates a screenshot of the current graphical output,
+        and stores it in $out or the current working directory"""
         out_dir = os.environ.get("out", os.getcwd())
         word_pattern = re.compile(r"^\w+$")
         if word_pattern.match(filename):
@@ -665,6 +677,10 @@ class Machine:
                 return ret.stdout.decode("utf-8")
 
     def wait_for_text(self, regex: str) -> None:
+        """Wait until the the text on the graphical output matches
+        the given regex.
+        Throws an exception on timeout."""
+
         def screen_matches(last: bool) -> bool:
             text = self.get_screen_text()
             matches = re.search(regex, text) is not None
@@ -678,10 +694,12 @@ class Machine:
             retry(screen_matches)
 
     def send_key(self, key: str) -> None:
+        """Sends the keypress of the given key to the machine"""
         key = CHAR_TO_KEY.get(key, key)
         self.send_monitor_command("sendkey {}".format(key))
 
     def start(self) -> None:
+        """Starts the VM."""
         if self.booted:
             return
 
@@ -758,6 +776,7 @@ class Machine:
         self.log("QEMU running (pid {})".format(self.pid))
 
     def shutdown(self) -> None:
+        """Sends the ACPI shutdown command to the VM."""
         if not self.booted:
             return
 
@@ -765,6 +784,7 @@ class Machine:
         self.wait_for_shutdown()
 
     def crash(self) -> None:
+        """Powers off the VM ungracefully."""
         if not self.booted:
             return
 
