@@ -89,6 +89,7 @@ functions/library/generated: doc-support/result
 %.section.xml: %.section.md
 	pandoc $^ -w docbook \
 		-f markdown+smart \
+		--id-prefix=$(subst /,-,$*)- \
 	  | sed -e 's|<ulink url=|<link xlink:href=|' \
 	      -e 's|</ulink>|</link>|' \
 	      -e 's|<sect. id=|<section xml:id=|' \
@@ -101,6 +102,7 @@ functions/library/generated: doc-support/result
 	pandoc $^ -w docbook \
 		--top-level-division=chapter \
 		-f markdown+smart \
+		--id-prefix=$(subst /,-,$*)- \
 	  | sed -e 's|<ulink url=|<link xlink:href=|' \
 	      -e 's|</ulink>|</link>|' \
 	      -e 's|<sect. id=|<section xml:id=|' \
