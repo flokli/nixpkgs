@@ -1,11 +1,10 @@
 #! /somewhere/python3
 from contextlib import contextmanager, _GeneratorContextManager
 from typing import Tuple, Any, Callable, Dict, Iterator, Optional, List
-from xml.sax.saxutils import XMLGenerator
 import _thread
 import atexit
 import base64
-import codecs
+import logging
 import os
 import pathlib
 import ptpython.repl
@@ -84,12 +83,7 @@ CHAR_TO_KEY = {
 }
 
 # Forward references
-log: "Logger"
 machines: "List[Machine]"
-
-
-def eprint(*args: object, **kwargs: Any) -> None:
-    print(*args, file=sys.stderr, **kwargs)
 
 
 def make_command(args: list) -> str:
@@ -97,8 +91,8 @@ def make_command(args: list) -> str:
 
 
 def create_vlan(vlan_nr: str) -> Tuple[str, str, "subprocess.Popen[bytes]", Any]:
-    global log
-    log.log("starting VDE switch for network {}".format(vlan_nr))
+    logger = logging.getLogger("vlan-{}".format(vlan_nr))
+    logger.info("starting VDE switch for network {}".format(vlan_nr))
     vde_socket = tempfile.mkdtemp(
         prefix="nixos-test-vde-", suffix="-vde{}.ctl".format(vlan_nr)
     )
@@ -137,54 +131,6 @@ def retry(fn: Callable) -> None:
         raise Exception("action timed out")
 
 
-class Logger:
-    def __init__(self) -> None:
-        self.logfile = os.environ.get("LOGFILE", "/dev/null")
-        self.logfile_handle = codecs.open(self.logfile, "wb")
-        self.xml = XMLGenerator(self.logfile_handle, encoding="utf-8")
-
-        self.xml.startDocument()
-        self.xml.startElement("logfile", attrs={})
-
-    def close(self) -> None:
-        self.xml.endElement("logfile")
-        self.xml.endDocument()
-        self.logfile_handle.close()
-
-    def sanitise(self, message: str) -> str:
-        return "".join(ch for ch in message if unicodedata.category(ch)[0] != "C")
-
-    def maybe_prefix(self, message: str, attributes: Dict[str, str]) -> str:
-        if "machine" in attributes:
-            return "{}: {}".format(attributes["machine"], message)
-        return message
-
-    def log_line(self, message: str, attributes: Dict[str, str]) -> None:
-        self.xml.startElement("line", attributes)
-        self.xml.characters(message)
-        self.xml.endElement("line")
-
-    def log(self, message: str, attributes: Dict[str, str] = {}) -> None:
-        eprint(self.maybe_prefix(message, attributes))
-        self.log_line(message, attributes)
-
-    @contextmanager
-    def nested(self, message: str, attributes: Dict[str, str] = {}) -> Iterator[None]:
-        eprint(self.maybe_prefix(message, attributes))
-
-        self.xml.startElement("nest", attrs={})
-        self.xml.startElement("head", attributes)
-        self.xml.characters(message)
-        self.xml.endElement("head")
-
-        tic = time.time()
-        yield
-        toc = time.time()
-        self.log("({:.2f} seconds)".format(toc - tic))
-
-        self.xml.endElement("nest")
-
-
 class Machine:
     def __init__(self, args: Dict[str, Any]) -> None:
         if "name" in args:
@@ -214,7 +160,7 @@ class Machine:
         self.pid: Optional[int] = None
         self.socket = None
         self.monitor: Optional[socket.socket] = None
-        self.logger: Logger = args["log"]
+        self.logger = logging.getLogger("machine.{}".format(self.name))
         self.allow_reboot = args.get("allowReboot", False)
 
     @staticmethod
@@ -272,12 +218,7 @@ class Machine:
         return self.booted and self.connected
 
     def log(self, msg: str) -> None:
-        self.logger.log(msg, {"machine": self.name})
-
-    def nested(self, msg: str, attrs: Dict[str, str] = {}) -> _GeneratorContextManager:
-        my_attrs = {"machine": self.name}
-        my_attrs.update(attrs)
-        return self.logger.nested(msg, my_attrs)
+        self.logger.info(msg)
 
     def wait_for_monitor_prompt(self) -> str:
         assert self.monitor is not None
@@ -360,16 +301,17 @@ class Machine:
         return self.execute("systemctl {}".format(q))
 
     def require_unit_state(self, unit: str, require_state: str = "active") -> None:
-        with self.nested(
+        self.log(
             "checking if unit ‘{}’ has reached state '{}'".format(unit, require_state)
-        ):
-            info = self.get_unit_info(unit)
-            state = info["ActiveState"]
-            if state != require_state:
-                raise Exception(
-                    "Expected unit ‘{}’ to to be in state ".format(unit)
-                    + "'{}' but it is in state ‘{}’".format(require_state, state)
-                )
+        )
+
+        info = self.get_unit_info(unit)
+        state = info["ActiveState"]
+        if state != require_state:
+            raise Exception(
+                "Expected unit ‘{}’ to to be in state ".format(unit)
+                + "'{}' but it is in state ‘{}’".format(require_state, state)
+            )
 
     def execute(self, command: str) -> Tuple[int, str]:
         self.connect()
@@ -393,25 +335,23 @@ class Machine:
         """Execute each command and check that it succeeds."""
         output = ""
         for command in commands:
-            with self.nested("must succeed: {}".format(command)):
-                (status, out) = self.execute(command)
-                if status != 0:
-                    self.log("output: {}".format(out))
-                    raise Exception(
-                        "command `{}` failed (exit code {})".format(command, status)
-                    )
-                output += out
+            self.log("must succeed: {}".format(command))
+            (status, out) = self.execute(command)
+            if status != 0:
+                self.log("output: {}".format(out))
+                raise Exception(
+                    "command `{}` failed (exit code {})".format(command, status)
+                )
+            output += out
         return output
 
     def fail(self, *commands: str) -> None:
         """Execute each command and check that it fails."""
         for command in commands:
-            with self.nested("must fail: {}".format(command)):
-                status, output = self.execute(command)
-                if status == 0:
-                    raise Exception(
-                        "command `{}` unexpectedly succeeded".format(command)
-                    )
+            self.log("must fail: {}".format(command))
+            status, output = self.execute(command)
+            if status == 0:
+                raise Exception("command `{}` unexpectedly succeeded".format(command))
 
     def wait_until_succeeds(self, command: str) -> str:
         """Wait until a command returns success and return its output.
@@ -424,9 +364,9 @@ class Machine:
             status, output = self.execute(command)
             return status == 0
 
-        with self.nested("waiting for success: {}".format(command)):
-            retry(check_success)
-            return output
+        self.log("waiting for success: {}".format(command))
+        retry(check_success)
+        return output
 
     def wait_until_fails(self, command: str) -> str:
         """Wait until a command returns failure.
@@ -439,21 +379,21 @@ class Machine:
             status, output = self.execute(command)
             return status != 0
 
-        with self.nested("waiting for failure: {}".format(command)):
-            retry(check_failure)
-            return output
+        self.log("waiting for failure: {}".format(command))
+        retry(check_failure)
+        return output
 
     def wait_for_shutdown(self) -> None:
         if not self.booted:
             return
 
-        with self.nested("waiting for the VM to power off"):
-            sys.stdout.flush()
-            self.process.wait()
+        self.log("waiting for the VM to power off")
+        sys.stdout.flush()
+        self.process.wait()
 
-            self.pid = None
-            self.booted = False
-            self.connected = False
+        self.pid = None
+        self.booted = False
+        self.connected = False
 
     def get_tty_text(self, tty: str) -> str:
         status, output = self.execute(
@@ -477,13 +417,13 @@ class Machine:
                 )
             return len(matcher.findall(text)) > 0
 
-        with self.nested("waiting for {} to appear on tty {}".format(regexp, tty)):
-            retry(tty_matches)
+        self.log("waiting for {} to appear on tty {}".format(regexp, tty))
+        retry(tty_matches)
 
     def send_chars(self, chars: List[str]) -> None:
-        with self.nested("sending keys ‘{}‘".format(chars)):
-            for char in chars:
-                self.send_key(char)
+        self.log("sending keys ‘{}‘".format(chars))
+        for char in chars:
+            self.send_key(char)
 
     def wait_for_file(self, filename: str) -> None:
         """Waits until the file exists in machine's file system."""
@@ -492,16 +432,16 @@ class Machine:
             status, _ = self.execute("test -e {}".format(filename))
             return status == 0
 
-        with self.nested("waiting for file ‘{}‘".format(filename)):
-            retry(check_file)
+        self.log("waiting for file ‘{}‘".format(filename))
+        retry(check_file)
 
     def wait_for_open_port(self, port: int) -> None:
         def port_is_open(_: Any) -> bool:
             status, _ = self.execute("nc -z localhost {}".format(port))
             return status == 0
 
-        with self.nested("waiting for TCP port {}".format(port)):
-            retry(port_is_open)
+        self.log("waiting for TCP port {}".format(port))
+        retry(port_is_open)
 
     def wait_for_closed_port(self, port: int) -> None:
         def port_is_closed(_: Any) -> bool:
@@ -523,17 +463,17 @@ class Machine:
         if self.connected:
             return
 
-        with self.nested("waiting for the VM to finish booting"):
-            self.start()
+        self.log("waiting for the VM to finish booting")
+        self.start()
 
-            tic = time.time()
-            self.shell.recv(1024)
-            # TODO: Timeout
-            toc = time.time()
+        tic = time.time()
+        self.shell.recv(1024)
+        # TODO: Timeout
+        toc = time.time()
 
-            self.log("connected to guest root shell")
-            self.log("(connecting took {:.2f} seconds)".format(toc - tic))
-            self.connected = True
+        self.log("connected to guest root shell")
+        self.log("(connecting took {:.2f} seconds)".format(toc - tic))
+        self.connected = True
 
     def screenshot(self, filename: str) -> None:
         out_dir = os.environ.get("out", os.getcwd())
@@ -542,15 +482,13 @@ class Machine:
             filename = os.path.join(out_dir, "{}.png".format(filename))
         tmp = "{}.ppm".format(filename)
 
-        with self.nested(
-            "making screenshot {}".format(filename),
-            {"image": os.path.basename(filename)},
-        ):
-            self.send_monitor_command("screendump {}".format(tmp))
-            ret = subprocess.run("pnmtopng {} > {}".format(tmp, filename), shell=True)
-            os.unlink(tmp)
-            if ret.returncode != 0:
-                raise Exception("Cannot convert screenshot")
+        self.log("making screenshot {}".format(filename))
+        # , {"image": os.path.basename(filename),})
+        self.send_monitor_command("screendump {}".format(tmp))
+        ret = subprocess.run("pnmtopng {} > {}".format(tmp, filename), shell=True)
+        os.unlink(tmp)
+        if ret.returncode != 0:
+            raise Exception("Cannot convert screenshot")
 
     def copy_from_host_via_shell(self, source: str, target: str) -> None:
         """Copy a file from the host into the guest by piping it over the
@@ -632,20 +570,18 @@ class Machine:
 
         tess_args = "-c debug_file=/dev/null --psm 11 --oem 2"
 
-        with self.nested("performing optical character recognition"):
-            with tempfile.NamedTemporaryFile() as tmpin:
-                self.send_monitor_command("screendump {}".format(tmpin.name))
+        self.log("performing optical character recognition")
+        with tempfile.NamedTemporaryFile() as tmpin:
+            self.send_monitor_command("screendump {}".format(tmpin.name))
 
-                cmd = "convert {} {} tiff:- | tesseract - - {}".format(
-                    magick_args, tmpin.name, tess_args
-                )
-                ret = subprocess.run(cmd, shell=True, capture_output=True)
-                if ret.returncode != 0:
-                    raise Exception(
-                        "OCR failed with exit code {}".format(ret.returncode)
-                    )
+            cmd = "convert {} {} tiff:- | tesseract - - {}".format(
+                magick_args, tmpin.name, tess_args
+            )
+            ret = subprocess.run(cmd, shell=True, capture_output=True)
+            if ret.returncode != 0:
+                raise Exception("OCR failed with exit code {}".format(ret.returncode))
 
-                return ret.stdout.decode("utf-8")
+        return ret.stdout.decode("utf-8")
 
     def wait_for_text(self, regex: str) -> None:
         def screen_matches(last: bool) -> bool:
@@ -657,8 +593,8 @@ class Machine:
 
             return matches
 
-        with self.nested("waiting for {} to appear on screen".format(regex)):
-            retry(screen_matches)
+        self.log("waiting for {} to appear on screen".format(regex))
+        retry(screen_matches)
 
     def send_key(self, key: str) -> None:
         key = CHAR_TO_KEY.get(key, key)
@@ -728,7 +664,7 @@ class Machine:
             for _line in self.process.stdout:
                 # Ignore undecodable bytes that may occur in boot menus
                 line = _line.decode(errors="ignore").replace("\r", "").rstrip()
-                eprint("{} # {}".format(self.name, line))
+                self.log("{} # {}".format(self.name, line))
 
         _thread.start_new_thread(process_serial_output, ())
 
@@ -770,8 +706,8 @@ class Machine:
             status, _ = self.execute("[ -e /tmp/.X11-unix/X0 ]")
             return status == 0
 
-        with self.nested("waiting for the X11 server"):
-            retry(check_x)
+        self.log("waiting for the X11 server")
+        retry(check_x)
 
     def get_window_names(self) -> List[str]:
         return self.succeed(
@@ -791,8 +727,8 @@ class Machine:
                 )
             return any(pattern.search(name) for name in names)
 
-        with self.nested("Waiting for a window to appear"):
-            retry(window_is_visible)
+        self.log("Waiting for a window to appear")
+        retry(window_is_visible)
 
     def sleep(self, secs: int) -> None:
         time.sleep(secs)
@@ -819,24 +755,26 @@ class Machine:
 
 
 def create_machine(args: Dict[str, Any]) -> Machine:
-    global log
-    args["log"] = log
     args["redirectSerial"] = os.environ.get("USE_SERIAL", "0") == "1"
     return Machine(args)
 
 
 def start_all() -> None:
     global machines
-    with log.nested("starting all VMs"):
-        for machine in machines:
-            machine.start()
+    # TODO: don't get log obj again
+    logger = logging.getLogger("")
+    logger.info("starting all VMs")
+    for machine in machines:
+        machine.start()
 
 
 def join_all() -> None:
     global machines
-    with log.nested("waiting for all VMs to finish"):
-        for machine in machines:
-            machine.wait_for_shutdown()
+    # TODO: don't get log obj again
+    logger = logging.getLogger("")
+    logger.info("starting all VMs")
+    for machine in machines:
+        machine.wait_for_shutdown()
 
 
 def test_script() -> None:
@@ -845,14 +783,18 @@ def test_script() -> None:
 
 def run_tests() -> None:
     global machines
+    # TODO: don't get log obj again
+    logger = logging.getLogger("")
     tests = os.environ.get("tests", None)
     if tests is not None:
-        with log.nested("running the VM test script"):
-            try:
-                exec(tests, globals())
-            except Exception as e:
-                eprint("error: {}".format(str(e)))
-                sys.exit(1)
+        logger.info("running the VM test script")
+        try:
+            exec(tests, globals())
+        except Exception as e:
+            # TODO: don't get log obj again
+            logger = logging.getLogger("")
+            logger.error("error: {}".format(str(e)))
+            sys.exit(1)
     else:
         ptpython.repl.embed(locals(), globals())
 
@@ -865,19 +807,24 @@ def run_tests() -> None:
 
 @contextmanager
 def subtest(name: str) -> Iterator[None]:
-    with log.nested(name):
-        try:
-            yield
-            return True
-        except Exception as e:
-            log.log(f'Test "{name}" failed with error: "{e}"')
-            raise e
+    # TODO: don't get log obj again
+    l = logging.getLogger("")
+    l.info(name)
+    try:
+        yield
+        return True
+    except Exception as e:
+        l.error(f'Test "{name}" failed with error: "{e}"')
+        raise e
 
     return False
 
 
 if __name__ == "__main__":
-    log = Logger()
+    logger = logging.getLogger("")
+    ch = logging.StreamHandler()
+    logger.addHandler(ch)
+    logger.setLevel(logging.DEBUG)
 
     vlan_nrs = list(dict.fromkeys(os.environ.get("VLANS", "").split()))
     vde_sockets = [create_vlan(v) for v in vlan_nrs]
@@ -893,16 +840,15 @@ if __name__ == "__main__":
 
     @atexit.register
     def clean_up() -> None:
-        with log.nested("cleaning up"):
-            for machine in machines:
-                if machine.pid is None:
-                    continue
-                log.log("killing {} (pid {})".format(machine.name, machine.pid))
-                machine.process.kill()
+        logger.info("cleaning up")
+        for machine in machines:
+            if machine.pid is None:
+                continue
+            logger.info("killing {} (pid {})".format(machine.name, machine.pid))
+            machine.process.kill()
 
-            for _, _, process, _ in vde_sockets:
-                process.terminate()
-        log.close()
+        for _, _, process, _ in vde_sockets:
+            process.terminate()
 
     tic = time.time()
     run_tests()
