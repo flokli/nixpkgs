@@ -1,6 +1,5 @@
 #! /somewhere/python3
 from contextlib import contextmanager, _GeneratorContextManager
-from queue import Queue, Empty
 from typing import Tuple, Any, Callable, Dict, Iterator, Optional, List
 from xml.sax.saxutils import XMLGenerator
 import _thread
@@ -143,7 +142,6 @@ class Logger:
         self.logfile = os.environ.get("LOGFILE", "/dev/null")
         self.logfile_handle = codecs.open(self.logfile, "wb")
         self.xml = XMLGenerator(self.logfile_handle, encoding="utf-8")
-        self.queue: "Queue[Dict[str, str]]" = Queue()
 
         self.xml.startDocument()
         self.xml.startElement("logfile", attrs={})
@@ -168,20 +166,7 @@ class Logger:
 
     def log(self, message: str, attributes: Dict[str, str] = {}) -> None:
         eprint(self.maybe_prefix(message, attributes))
-        self.drain_log_queue()
         self.log_line(message, attributes)
-
-    def enqueue(self, message: Dict[str, str]) -> None:
-        self.queue.put(message)
-
-    def drain_log_queue(self) -> None:
-        try:
-            while True:
-                item = self.queue.get_nowait()
-                attributes = {"machine": item["machine"], "type": "serial"}
-                self.log_line(self.sanitise(item["msg"]), attributes)
-        except Empty:
-            pass
 
     @contextmanager
     def nested(self, message: str, attributes: Dict[str, str] = {}) -> Iterator[None]:
@@ -193,9 +178,7 @@ class Logger:
         self.xml.endElement("head")
 
         tic = time.time()
-        self.drain_log_queue()
         yield
-        self.drain_log_queue()
         toc = time.time()
         self.log("({:.2f} seconds)".format(toc - tic))
 
@@ -746,7 +729,6 @@ class Machine:
                 # Ignore undecodable bytes that may occur in boot menus
                 line = _line.decode(errors="ignore").replace("\r", "").rstrip()
                 eprint("{} # {}".format(self.name, line))
-                self.logger.enqueue({"msg": line, "machine": self.name})
 
         _thread.start_new_thread(process_serial_output, ())
 
