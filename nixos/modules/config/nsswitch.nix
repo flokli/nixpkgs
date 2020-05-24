@@ -124,8 +124,7 @@ with lib;
       group = mkBefore [ "files" ];
       shadow = mkBefore [ "files" ];
       hosts = mkMerge [
-        (mkBefore [ "files" ])
-        (mkAfter [ "dns" ])
+        (mkAfter [ "files" "dns" ])
       ];
       services = mkBefore [ "files" ];
     };

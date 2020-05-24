@@ -834,9 +834,10 @@ in
     system.nssModules = [ systemd.out ];
     system.nssDatabases = {
       hosts = (mkMerge [
-        [ "mymachines" ]
-        (mkOrder 1600 [ "myhostname" ] # 1600 to ensure it's always the last
-      )
+        # 90 to ensure it comes before the regular entries
+        (mkOrder 90 [ "mymachines" ])
+        # 1400 to ensure it's shortly before the mkAfter entries
+        (mkOrder 1400 [ "myhostname" ])
       ]);
       passwd = (mkMerge [
         [ "mymachines" ]
