@@ -247,15 +247,15 @@
     version = "1.7.0";
   };
   gitlab-gollum-lib = {
-    dependencies = ["gemojione" "github-markup" "gollum-grit_adapter" "nokogiri" "rouge" "sanitize" "stringex"];
+    dependencies = ["gemojione" "github-markup" "gitlab-gollum-rugged_adapter" "nokogiri" "rouge" "sanitize" "stringex"];
     groups = ["default"];
     platforms = [];
     source = {
       remotes = ["https://rubygems.org"];
-      sha256 = "13m26b32iznp0lbq984dijx7n4ckg99zckwp80gv1knq8n0bpfbf";
+      sha256 = "0dwrggw38wkadm9i1q8bj15lf0ik5z6qlbbggkgcvmbxb0a4hrmx";
       type = "gem";
     };
-    version = "4.2.7.7";
+    version = "4.2.7.8";
   };
   gitlab-gollum-rugged_adapter = {
     dependencies = ["mime-types" "rugged"];
@@ -267,15 +267,6 @@
       type = "gem";
     };
     version = "0.4.4.2";
-  };
-  gitlab-grit = {
-    dependencies = ["charlock_holmes" "diff-lcs" "mime-types" "posix-spawn"];
-    source = {
-      remotes = ["https://rubygems.org"];
-      sha256 = "0xgs3l81ghlc5nm75n0pz7b2cj3hpscfq5iy27c483nnjn2v5mc4";
-      type = "gem";
-    };
-    version = "2.8.2";
   };
   gitlab-labkit = {
     dependencies = ["actionpack" "activesupport" "grpc" "jaeger-client" "opentracing" "redis"];
@@ -297,15 +288,6 @@
       type = "gem";
     };
     version = "1.7.0";
-  };
-  gollum-grit_adapter = {
-    dependencies = ["gitlab-grit"];
-    source = {
-      remotes = ["https://rubygems.org"];
-      sha256 = "0fcibm63v1afc0fj5rki0mm51m7nndil4cjcjjvkh3yigfn4nr4b";
-      type = "gem";
-    };
-    version = "1.0.1";
   };
   google-protobuf = {
     groups = ["default"];
@@ -563,18 +545,10 @@
     platforms = [];
     source = {
       remotes = ["https://rubygems.org"];
-      sha256 = "1pnks149x0fzgqiw53qlmvcd8bi746cxdw03sjljby5s97p1fskn";
+      sha256 = "19nxgcl6fbnr6da958hyvnycv441ryp2dw4ccmldah5bm8885z39";
       type = "gem";
     };
-    version = "2.6.3.0";
-  };
-  posix-spawn = {
-    source = {
-      remotes = ["https://rubygems.org"];
-      sha256 = "1pmxmpins57qrbr31bs3bm7gidhaacmrp4md6i962gvpq4gyfcjw";
-      type = "gem";
-    };
-    version = "0.3.13";
+    version = "2.7.0.4";
   };
   proc_to_ast = {
     dependencies = ["coderay" "parser" "unparser"];
@@ -695,10 +669,10 @@
     platforms = [];
     source = {
       remotes = ["https://rubygems.org"];
-      sha256 = "1ipgdir89a6pp1zscl2fkb99pppa7c513pk4wvis157bn8p9hlrx";
+      sha256 = "0xl7k5paf66p57sphm4nfa4k86yf93lhdzzr0cv0l4divq12g2pr";
       type = "gem";
     };
-    version = "3.15.0";
+    version = "3.17.0";
   };
   rspec = {
     dependencies = ["rspec-core" "rspec-expectations" "rspec-mocks"];
