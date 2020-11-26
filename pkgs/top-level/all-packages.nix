@@ -19070,6 +19070,7 @@ in
     ubootBananaPim64
     ubootAmx335xEVM
     ubootClearfog
+    ubootCubietruck
     ubootGuruplug
     ubootJetsonTK1
     ubootNovena

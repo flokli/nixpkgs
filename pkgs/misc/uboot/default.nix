@@ -401,4 +401,10 @@ in {
     BL31 = "${armTrustedFirmwareRK3399}/bl31.elf";
     filesToInstall = [ "u-boot.itb" "idbloader.img"];
   };
+
+  ubootCubietruck = buildUBoot {
+    defconfig = "Cubietruck_defconfig";
+    extraMeta.platforms = [ "armv7l-linux" ];
+    filesToInstall = [ "u-boot.img" ];
+  };
 }
