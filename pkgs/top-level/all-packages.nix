@@ -10932,6 +10932,8 @@ in
 
   abi-dumper = callPackage ../development/tools/misc/abi-dumper { };
 
+  ada_language_server = callPackage ../development/tools/ada_language_server { };
+
   adtool = callPackage ../tools/admin/adtool { };
 
   inherit (callPackage ../development/tools/alloy {
