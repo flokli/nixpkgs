@@ -1516,6 +1516,22 @@ say = buildLuarocksPackage {
     license.fullName = "MIT <http://opensource.org/licenses/MIT>";
   };
 };
+shell-games = buildLuarocksPackage {
+  pname = "shell-games";
+  version = "1.1.0-1";
+
+  src = fetchurl {
+    url    = "mirror://luarocks/shell-games-1.1.0-1.src.rock";
+    sha256 = "19gbfkhjsibg401iblzyhxpx7xza65jxd1mp5ya7yn256fl0mn52";
+  };
+
+  meta = with lib; {
+    homepage = "https://github.com/GUI/lua-shell-games";
+    description = "A library to help execute shell commands more easily and safely.";
+    maintainers = with maintainers; [ flokli ];
+    license.fullName = "MIT";
+  };
+};
 std__debug = buildLuarocksPackage {
   pname = "std._debug";
   version = "1.0.1-1";

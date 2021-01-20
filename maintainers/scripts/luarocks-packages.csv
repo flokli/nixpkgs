@@ -80,6 +80,7 @@ penlight,,,,,
 rapidjson,,,,,
 readline,,,,,
 say,,,,,
+shell-games,,,,,flokli
 std__debug,std._debug,,,,
 std_normalize,std.normalize,,,,
 stdlib,,,,,vyp
