@@ -1276,6 +1276,23 @@ luazip = buildLuarocksPackage {
     license.fullName = "MIT";
   };
 };
+lua-resty-auto-ssl = buildLuarocksPackage {
+  pname = "lua-resty-auto-ssl";
+  version = "0.13.1-1";
+
+  src = fetchurl {
+    url    = "mirror://luarocks/lua-resty-auto-ssl-0.13.1-1.src.rock";
+    sha256 = "1py8050q5ffjsv48r5ss2r2qrwscdclxsd4w97sly3rjixm7g8d6";
+  };
+  propagatedBuildInputs = [ lua-resty-http shell-games ];
+
+  meta = with lib; {
+    homepage = "https://github.com/GUI/lua-resty-auto-ssl";
+    description = "Automatic SSL handling for OpenResty";
+    maintainers = with maintainers; [ flokli ];
+    license.fullName = "MIT";
+  };
+};
 lua-yajl = buildLuarocksPackage {
   pname = "lua-yajl";
   version = "2.0-1";

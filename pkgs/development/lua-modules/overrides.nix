@@ -159,6 +159,62 @@ with super;
     '';
   });
 
+  lua-resty-auto-ssl = super.lua-resty-auto-ssl.override ({
+    # Their Makefile tries to download stuff from the internet, and checks if
+    # curl is in $PATH.
+    # We provide all files in the places where they're expected, so we don't
+    # download stuff from the internet, but the check for curl can't be removed
+    # without patching the Makefile.
+    nativeBuildInputs = [
+      pkgs.curl
+    ];
+
+    postConfigure =
+      let
+        DEHYDRATED_VERSION = "05eda91a2fbaed1e13c733230238fc68475c535e";
+        dehydrated = pkgs.fetchurl {
+          url = "https://raw.githubusercontent.com/lukas2511/dehydrated/${DEHYDRATED_VERSION}/dehydrated";
+          sha256 = "0f6ij49fff0n9z053zs05s5v6ybl06wlnwcblm4ibhpcsmj0syx9";
+        };
+        LUA_RESTY_SHELL_VERSION = "955243d70506c21e7cc29f61d745d1a8a718994f";
+        luaRestyShell = pkgs.fetchurl {
+          url = "https://raw.githubusercontent.com/juce/lua-resty-shell/${LUA_RESTY_SHELL_VERSION}/lib/resty/shell.lua";
+          sha256 = "0x39kphxc4wp3qx7wg6inqrv51hb461yrx37kajp51c20l5mkf8x";
+        };
+        SOCKPROC_VERSION = "92aba736027bb5d96e190b71555857ac5bb6b2be";
+        sockproc = pkgs.stdenv.mkDerivation {
+          pname = "sockproc";
+          version = "unstable-20190602";
+          src = pkgs.fetchFromGitHub {
+            owner = "juce";
+            repo = "sockproc";
+            rev = SOCKPROC_VERSION;
+            sha256 = "0mrdjmrqaqxj8k78qhgx9mbcprmxs4kg44garylik9mdgiz5zjky";
+          };
+          # Upstream ships a Makefile, but it sets -Werrror, is 4 years old and fails with recent gcc. Oh well.
+          buildPhase = ''
+            $CC -Wall -o sockproc sockproc.c
+          '';
+          installPhase = ''
+            mkdir -p $out/bin
+            install -Dm755 ./sockproc $out/bin/sockproc
+          '';
+        };
+
+      in
+      ''
+        mkdir -p build
+        touch build/stamp-dehydrated-2-${DEHYDRATED_VERSION}
+        install -Dm755 ${dehydrated} build/bin/dehydrated
+
+        touch build/stamp-lua-resty-shell-${LUA_RESTY_SHELL_VERSION}
+        install -D ${luaRestyShell} lib/resty/auto-ssl/vendor/shell.lua
+
+        touch build/stamp-sockproc-2-92aba736027bb5d96e190b71555857ac5bb6b2be
+        install -Dm755 ${sockproc}/bin/sockproc build/bin/sockproc
+      '';
+  });
+
   lua-zlib = super.lua-zlib.override({
     buildInputs = [
       pkgs.zlib.dev

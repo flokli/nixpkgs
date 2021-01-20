@@ -67,6 +67,7 @@ luassert,,,,,
 luasystem,,,,,
 luautf8,,,,,pstn
 luazip,,,,,
+lua-resty-auto-ssl,,,,,flokli
 lua-yajl,,,,,pstn
 luuid,,,,,
 luv,,,,,
