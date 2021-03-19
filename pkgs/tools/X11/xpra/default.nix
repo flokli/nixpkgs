@@ -1,6 +1,6 @@
 { lib, fetchurl, callPackage, substituteAll, python3, pkg-config, writeText
 , xorg, gtk3, glib, pango, cairo, gdk-pixbuf, atk
-, wrapGAppsHook, xorgserver, getopt, xauth, util-linux, which
+, wrapGAppsHook, xorgserver, getopt, xauth, util-linux, which, pandoc
 , ffmpeg, x264, libvpx, libwebp, x265
 , libfakeXinerama
 , gst_all_1, pulseaudio, gobject-introspection
@@ -30,11 +30,11 @@ let
 
 in buildPythonApplication rec {
   pname = "xpra";
-  version = "4.0.6";
+  version = "4.1.1";
 
   src = fetchurl {
     url = "https://xpra.org/src/${pname}-${version}.tar.xz";
-    sha256 = "nGcvbZFGYd2nQ75LL4YN+xcWb7UsViA3OAqpcrTwieg=";
+    sha256 = "1ns19lk8szq93yx5y9kmv146npwvynpd7f4bmnn4kqgmzvp9zp2q";
   };
 
   patches = [
@@ -50,7 +50,7 @@ in buildPythonApplication rec {
     substituteInPlace setup.py --replace '/usr/include/security' '${pam}/include/security'
   '';
 
-  nativeBuildInputs = [ pkg-config wrapGAppsHook ];
+  nativeBuildInputs = [ pkg-config wrapGAppsHook pandoc ];
   buildInputs = with xorg; [
     libX11 xorgproto libXrender libXi
     libXtst libXfixes libXcomposite libXdamage
