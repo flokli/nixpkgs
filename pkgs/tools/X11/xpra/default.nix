@@ -2,7 +2,7 @@
 , xorg, gtk3, glib, pango, cairo, gdk-pixbuf, atk
 , wrapGAppsHook, xorgserver, getopt, xauth, util-linux, which, pandoc
 , ffmpeg, x264, libvpx, libwebp, x265
-, libfakeXinerama
+, libfakeXinerama, qrencode
 , gst_all_1, pulseaudio, gobject-introspection
 , pam }:
 
@@ -96,7 +96,7 @@ in buildPythonApplication rec {
       "''${gappsWrapperArgs[@]}"
       --set XPRA_INSTALL_PREFIX "$out"
       --set XPRA_COMMAND "$out/bin/xpra"
-      --prefix LD_LIBRARY_PATH : ${libfakeXinerama}/lib
+      --prefix LD_LIBRARY_PATH : ${libfakeXinerama}/lib:${lib.getLib qrencode}/lib
       --prefix PATH : ${lib.makeBinPath [ getopt xorgserver xauth which util-linux pulseaudio ]}
     )
   '';
