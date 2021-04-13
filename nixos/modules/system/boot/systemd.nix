@@ -925,8 +925,7 @@ in
     system.nssDatabases = {
       hosts = (mkMerge [
         [ "mymachines" ]
-        (mkOrder 1600 [ "myhostname" ] # 1600 to ensure it's always the last
-      )
+        [ "myhostname" ]
       ]);
       passwd = (mkMerge [
         (mkAfter [ "systemd" ])
