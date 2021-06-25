@@ -55,6 +55,15 @@ in
       '';
     };
 
+    firmwarePartitionOffset = mkOption {
+      type = types.int;
+      default = 8;
+      description = ''
+        Gap in front of the /boot/firmware partition, in megabytes.
+        Can be extended to make more space for boards requiring to dd u-boot SPL before actual partitions.
+      '';
+    };
+
     firmwarePartitionID = mkOption {
       type = types.str;
       default = "0x2178694e";
@@ -177,7 +186,7 @@ in
         zstd -d --no-progress "${rootfsImage}" -o ./root-fs.img
 
         # Gap in front of the first partition, in MiB
-        gap=8
+        gap=${toString config.sdImage.firmwarePartitionOffset}
 
         # Create the image file sized to fit /boot/firmware and /, plus slack for the gap.
         rootSizeBlocks=$(du -B 512 --apparent-size ./root-fs.img | awk '{ print $1 }')
