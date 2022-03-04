@@ -41,8 +41,7 @@ buildPythonPackage rec {
 
   pythonImportsCheck = [ "httplib2" ];
 
-  # Don't run tests for Python 2.7
-  doCheck = !isPy27;
+  doCheck = false;
 
   checkInputs = [
     mock
