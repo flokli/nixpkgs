@@ -1,0 +1,16 @@
+diff --git a/sphinxcontrib/openapi/renderers/_httpdomain.py b/sphinxcontrib/openapi/renderers/_httpdomain.py
+index 9bb85d3..f6843f5 100644
+--- a/sphinxcontrib/openapi/renderers/_httpdomain.py
++++ b/sphinxcontrib/openapi/renderers/_httpdomain.py
+@@ -1,10 +1,7 @@
+ """OpenAPI spec renderer."""
+ 
+ import sys
+-if sys.version_info >= (3, 3):
+-    import collections.abc as collections
+-else:
+-    import collections
++import collections
+ 
+ import copy
+ import functools

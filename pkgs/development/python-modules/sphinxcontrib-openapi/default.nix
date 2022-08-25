@@ -29,6 +29,10 @@ buildPythonPackage rec {
     sha256 = "sha256-4xW4Qgr7IR055B74M/zn9cdnTmC4Pg7QZB3mH4YjDk4=";
   };
 
+  patches = [
+    ./stop-using-collections-abc.patch
+  ];
+
   nativeBuildInputs = [ setuptools-scm ];
   propagatedBuildInputs = [
     deepmerge
