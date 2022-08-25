@@ -6718,6 +6718,8 @@ in {
 
   pickleshare = callPackage ../development/python-modules/pickleshare { };
 
+  picobox = callPackage ../development/python-modules/picobox { };
+
   picos = callPackage ../development/python-modules/picos { };
 
   pid = callPackage ../development/python-modules/pid { };
