@@ -4,6 +4,7 @@ with haskellLib;
 
 let
   inherit (pkgs.stdenv.hostPlatform) isDarwin;
+  inherit (pkgs) fetchpatch;
 in
 
 self: super: {
@@ -90,6 +91,15 @@ self: super: {
   # Too strict upper bound on bytestring, relevant for GHC 9.2.6 specifically
   # https://github.com/protolude/protolude/issues/127#issuecomment-1428807874
   protolude = doJailbreak super.protolude;
+
+  ghc-debug-client = unmarkBroken (appendPatch
+    (fetchpatch {
+      url = "https://gitlab.haskell.org/ghc/ghc-debug/-/commit/ed3975717e27fd858f35b33359b94ef9a12735f3.patch";
+      sha256 = "sha256-B+A6shw5G2YL6qQEerjlIFsdcocNS4SZvTwOb8V7bTY=";
+      stripLen = 1;
+    })
+    super.ghc-debug-client);
+
 
   # https://github.com/fpco/inline-c/pull/131
   inline-c-cpp =
