@@ -8,20 +8,28 @@
 
 # runtime
 , expat
-, ipu6-camera-bin
+, ipu6-camera-bins
 , libtool
 , gst_all_1
+, ipuVersion ? "ipu6"
 }:
 
+let
+  prefix =
+    if ipuVersion == "ipu6" then "ipu_tgl"
+    else if ipuVersion == "ipu6ep" then "ipu_adl"
+    else if ipuVersion == "ipu6epmtl" then "ipu_mtl"
+    else throw "Invalid IPU version";
+in
 stdenv.mkDerivation {
-  pname = "${ipu6-camera-bin.ipuVersion}-camera-hal";
-  version = "unstable-2023-02-08";
+  pname = "${ipuVersion}-camera-hal";
+  version = "unstable-2023-09-07";
 
   src = fetchFromGitHub {
     owner = "intel";
     repo = "ipu6-camera-hal";
-    rev = "884b81aae0ea19a974eb8ccdaeef93038136bdd4";
-    hash = "sha256-AePL7IqoOhlxhfPRLpCman5DNh3wYS4MUcLgmgBUcCM=";
+    rev = "93642d2f137c11aa77c9f8b656199fbcc08edfbd";
+    hash = "sha256-IxRu11yMFmX5d4hG/fAoVea6B6jGmx27hDJvP3ou3ng=";
   };
 
   nativeBuildInputs = [
@@ -30,24 +38,24 @@ stdenv.mkDerivation {
   ];
 
   cmakeFlags = [
-    "-DIPU_VER=${ipu6-camera-bin.ipuVersion}"
-    # missing libiacss
+    "-DIPU_VER=${ipuVersion}"
     "-DUSE_PG_LITE_PIPE=ON"
-    # missing libipu4
-    "-DENABLE_VIRTUAL_IPU_PIPE=OFF"
-  ];
 
-  NIX_CFLAGS_COMPILE = [
-    "-Wno-error"
-    "-I${lib.getDev ipu6-camera-bin}/include/ia_imaging"
-    "-I${lib.getDev ipu6-camera-bin}/include/ia_camera"
+    "-DLIBGCSS_FOUND=ON"
+    "-DLIBGCSS_INCLUDE_DIRS=${ipu6-camera-bins}/include/${prefix}/ia_camera"
+    "-DIA_IMAGING_FOUND=ON"
+    "-DIA_IMAGING_LIBRARY_DIRS=${ipu6-camera-bins}/lib/${prefix}"
+    "-DIA_IMAGING_INCLUDE_DIRS=${ipu6-camera-bins}/include/${prefix}/ia_imaging"
+    "-DLIBIPU_FOUND=ON"
+    "-DLIBIPU_LIBRARY_DIRS=${ipu6-camera-bins}/lib/${prefix}"
+    "-DLIBIPU_INCLUDE_DIRS=${ipu6-camera-bins}/include/${prefix}"
   ];
 
   enableParallelBuilding = true;
 
   buildInputs = [
     expat
-    ipu6-camera-bin
+    ipu6-camera-bins
     libtool
     gst_all_1.gstreamer
     gst_all_1.gst-plugins-base
@@ -58,13 +66,8 @@ stdenv.mkDerivation {
       --replace '/usr/share/' "${placeholder "out"}/share/"
   '';
 
-  postFixup = ''
-    substituteInPlace $out/lib/pkgconfig/libcamhal.pc \
-      --replace 'prefix=/usr' "prefix=$out"
-  '';
-
   passthru = {
-    inherit (ipu6-camera-bin) ipuVersion;
+    inherit ipuVersion;
   };
 
   meta = with lib; {
