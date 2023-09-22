@@ -357,6 +357,11 @@ mapAliases ({
   ipfs-migrator-unwrapped = kubo-migrator-unwrapped; # Added 2022-09-27
   ipfs-migrator = kubo-migrator; # Added 2022-09-27
   iproute = iproute2; # moved from top-level 2021-03-14
+  iproute_mptcp = throw "'iproute_mptcp' has been moved to https://github.com/teto/mptcp-flake"; # Converted to throw 2022-10-04
+  ipsecTools = throw "ipsecTools has benn removed, because it was no longer maintained upstream"; # Added 2021-12-15
+  ipu6-camera-bin = ipu6-camera-bins; # Added 2023-09-22
+  ipu6ep-camera-bin = ipu6-camera-bins; # Added 2023-09-22
+  itch-setup = throw "itch-setup has benn removed, use itch instead"; # Added 2022-06-02
 
   ### J ###
 
