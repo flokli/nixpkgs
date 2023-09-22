@@ -8,15 +8,15 @@
 , libdrm
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "icamerasrc-${ipu6-camera-hal.ipuVersion}";
-  version = "unstable-2023-03-09";
+  version = "unstable-2023-09-01";
 
   src = fetchFromGitHub {
     owner = "intel";
     repo = "icamerasrc";
-    rev = "17841ab6249aaa69bd9b3959262bf182dee74111";
-    hash = "sha256-j8ZYe4nyy5yfo10CGeXDwbAaAPvdr0ptMWB8hQDyESQ=";
+    rev = "931412a66cdf5d24ed77aa3b652a958dae9b2e9e";
+    hash = "sha256-GFtXbLF3DI8iZwZlb+zIRJkqgjca9AdtmIMZZARRzUc=";
   };
 
   nativeBuildInputs = [
