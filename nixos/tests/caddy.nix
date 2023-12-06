@@ -34,6 +34,13 @@ import ./make-test-python.nix ({ pkgs, ... }: {
           "http://localhost:8081" = { };
         };
       };
+      specialisation.custom-config-file.configuration = {
+        services.caddy.configFile = pkgs.writeTextDir "Caddyfile" ''
+          http://localhost {
+            respond "Hello"
+          }
+        '';
+      };
       specialisation.rfc42.configuration = {
         services.caddy.settings = {
           apps.http.servers.default = {
@@ -55,6 +62,7 @@ import ./make-test-python.nix ({ pkgs, ... }: {
     let
       justReloadSystem = "${nodes.webserver.system.build.toplevel}/specialisation/config-reload";
       multipleConfigs = "${nodes.webserver.system.build.toplevel}/specialisation/multiple-configs";
+      customConfigFile = "${nodes.webserver.system.build.toplevel}/specialisation/custom-config-file";
       rfc42Config = "${nodes.webserver.system.build.toplevel}/specialisation/rfc42";
     in
     ''
@@ -77,6 +85,12 @@ import ./make-test-python.nix ({ pkgs, ... }: {
           )
           webserver.wait_for_open_port(8080)
           webserver.wait_for_open_port(8081)
+
+      with subtest("custom config file still works"):
+          webserver.succeed(
+              "${customConfigFile}/bin/switch-to-configuration test >&2"
+          )
+          webserver.wait_for_open_port(80)
 
       with subtest("rfc42 settings config"):
           webserver.succeed(
