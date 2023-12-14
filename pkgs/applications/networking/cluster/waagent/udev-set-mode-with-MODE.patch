@@ -1,0 +1,27 @@
+From ce7f55fa1eef30e6cba5c1208bf31a4b595b2918 Mon Sep 17 00:00:00 2001
+From: Florian Klink <flokli@flokli.de>
+Date: Thu, 14 Dec 2023 14:42:01 +0200
+Subject: [PATCH] udev: set mode with MODE
+
+---
+ config/99-azure-product-uuid.rules | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/config/99-azure-product-uuid.rules b/config/99-azure-product-uuid.rules
+index a5af9b1f..ef8aec58 100644
+--- a/config/99-azure-product-uuid.rules
++++ b/config/99-azure-product-uuid.rules
+@@ -1,9 +1,2 @@
+-SUBSYSTEM!="dmi", GOTO="product_uuid-exit"
+-ATTR{sys_vendor}!="Microsoft Corporation", GOTO="product_uuid-exit"
+-ATTR{product_name}!="Virtual Machine", GOTO="product_uuid-exit"
+-TEST!="/sys/devices/virtual/dmi/id/product_uuid", GOTO="product_uuid-exit"
+-
+-RUN+="/bin/chmod 0444 /sys/devices/virtual/dmi/id/product_uuid"
+-
+-LABEL="product_uuid-exit"
++SUBSYSTEM=="dmi", ATTR{sys_vendor}=="Microsoft Corporation", ATTR{product_name}=="Virtual Machine", MODE="0444"
+ 
+-- 
+2.42.0
+
