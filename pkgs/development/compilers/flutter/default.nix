@@ -20,7 +20,7 @@ let
         inherit version engineVersion patches pubspecLock artifactHashes;
 
         dart = dart.override {
-          version = dartVersion;
+          versionUsed = dartVersion;
           sources = {
             "${dartVersion}-x86_64-linux" = fetchzip {
               url = "https://storage.googleapis.com/dart-archive/channels/stable/release/${dartVersion}/sdk/dartsdk-linux-x64-release.zip";
