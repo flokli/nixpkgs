@@ -4,7 +4,7 @@ with lib;
 
 let
   cfg = config.boot.initrd.clevis;
-  systemd = config.boot.initrd.systemd;
+  systemdInitrd = config.boot.initrd.systemd;
   supportedFs = [ "zfs" "bcachefs" ];
 in
 {
@@ -42,10 +42,6 @@ in
   };
 
   config = mkIf cfg.enable {
-
-    # Implementation of clevis unlocking for the supported filesystems are located directly in the respective modules.
-
-
     assertions = (attrValues (mapAttrs
       (device: _: {
         assertion = (any (fs: fs.device == device && (elem fs.fsType supportedFs)) config.system.build.fileSystems) || (hasAttr device config.boot.initrd.luks.devices);
@@ -56,12 +52,12 @@ in
 
 
     warnings =
-      if cfg.useTang && !config.boot.initrd.network.enable && !config.boot.initrd.systemd.network.enable
+      if cfg.useTang && !config.boot.initrd.network.enable && !systemdInitrd.network.enable
       then [ "In order to use a Tang pinned secret you must configure networking in initrd" ]
       else [ ];
 
     boot.initrd = {
-      extraUtilsCommands = mkIf (!systemd.enable) ''
+      extraUtilsCommands = mkIf (!systemdInitrd.enable) ''
         copy_bin_and_libs ${pkgs.jose}/bin/jose
         copy_bin_and_libs ${pkgs.curl}/bin/curl
         copy_bin_and_libs ${pkgs.bash}/bin/bash
@@ -86,7 +82,7 @@ in
 
       secrets = lib.mapAttrs' (name: value: nameValuePair "/etc/clevis/${name}.jwe" value.secretFile) cfg.devices;
 
-      systemd = mkIf systemd.enable {
+      systemd = mkIf systemdInitrd.enable {
         extraBin = {
           clevis = "${cfg.package}/bin/clevis";
           curl = "${pkgs.curl}/bin/curl";

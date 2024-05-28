@@ -4,7 +4,6 @@ with lib;
 
 let
   luks = config.boot.initrd.luks;
-  clevis = config.boot.initrd.clevis;
   systemd = config.boot.initrd.systemd;
   kernelPackages = config.boot.kernelPackages;
   defaultPrio = (mkOptionDefault {}).priority;
@@ -896,19 +895,6 @@ in
             '';
           };
         };
-
-        config = mkIf (clevis.enable && (hasAttr name clevis.devices)) {
-          preOpenCommands = mkIf (!systemd.enable) ''
-            mkdir -p /clevis-${name}
-            mount -t ramfs none /clevis-${name}
-            clevis decrypt < /etc/clevis/${name}.jwe > /clevis-${name}/decrypted
-          '';
-          keyFile = "/clevis-${name}/decrypted";
-          fallbackToPassword = !systemd.enable;
-          postOpenCommands = mkIf (!systemd.enable) ''
-            umount /clevis-${name}
-          '';
-        };
       }));
     };
 
@@ -1097,35 +1083,6 @@ in
     boot.initrd.preFailCommands = mkIf (!config.boot.initrd.systemd.enable) postCommands;
     boot.initrd.preLVMCommands = mkIf (!config.boot.initrd.systemd.enable) (commonFunctions + preCommands + concatStrings (mapAttrsToList openCommand preLVM) + postCommands);
     boot.initrd.postDeviceCommands = mkIf (!config.boot.initrd.systemd.enable) (commonFunctions + preCommands + concatStrings (mapAttrsToList openCommand postLVM) + postCommands);
-
-    boot.initrd.systemd.services = let devicesWithClevis = filterAttrs (device: _: (hasAttr device clevis.devices)) luks.devices; in
-      mkIf (clevis.enable && systemd.enable) (
-        (mapAttrs'
-          (name: _: nameValuePair "cryptsetup-clevis-${name}" {
-            wantedBy = [ "systemd-cryptsetup@${utils.escapeSystemdPath name}.service" ];
-            before = [
-              "systemd-cryptsetup@${utils.escapeSystemdPath name}.service"
-              "initrd-switch-root.target"
-              "shutdown.target"
-            ];
-            wants = [ "systemd-udev-settle.service" ] ++ optional clevis.useTang "network-online.target";
-            after = [ "systemd-modules-load.service" "systemd-udev-settle.service" ] ++ optional clevis.useTang "network-online.target";
-            script = ''
-              mkdir -p /clevis-${name}
-              mount -t ramfs none /clevis-${name}
-              umask 277
-              clevis decrypt < /etc/clevis/${name}.jwe > /clevis-${name}/decrypted
-            '';
-            conflicts = [ "initrd-switch-root.target" "shutdown.target" ];
-            unitConfig.DefaultDependencies = "no";
-            serviceConfig = {
-              Type = "oneshot";
-              RemainAfterExit = true;
-              ExecStop = "${config.boot.initrd.systemd.package.util-linux}/bin/umount /clevis-${name}";
-            };
-          })
-          devicesWithClevis)
-      );
 
     environment.systemPackages = [ pkgs.cryptsetup ];
   };
