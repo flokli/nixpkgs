@@ -86,13 +86,13 @@ in
 
       secrets = lib.mapAttrs' (name: value: nameValuePair "/etc/clevis/${name}.jwe" value.secretFile) cfg.devices;
 
-      systemd = {
-        extraBin = mkIf systemd.enable {
+      systemd = mkIf systemd.enable {
+        extraBin = {
           clevis = "${cfg.package}/bin/clevis";
           curl = "${pkgs.curl}/bin/curl";
         };
 
-        storePaths = mkIf systemd.enable [
+        storePaths = [
           cfg.package
           "${pkgs.jose}/bin/jose"
           "${pkgs.curl}/bin/curl"
