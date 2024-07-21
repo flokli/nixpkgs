@@ -55,6 +55,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   outputs = [ "out" "bin" "dev" ] ++ lib.optionals withDocumentation [ "doc" "man" ];
   separateDebugInfo = true;
+  propagatedBuildOutputs = [ "out" "dev" ];
 
   mesonFlags = [
     "-Ddocumentation=${lib.boolToString withDocumentation}"
