@@ -141,7 +141,7 @@ stdenv.mkDerivation rec {
   ] ++ lib.optionals enableDocumentation [
     hotdoc
   ] ++ lib.optionals (gst-plugins-base.waylandEnabled && stdenv.isLinux) [
-    wayland # for wayland-scanner
+    wayland.bin # for wayland-scanner
   ];
 
   buildInputs = [
