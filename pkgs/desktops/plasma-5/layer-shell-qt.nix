@@ -12,6 +12,6 @@
 
 mkDerivation {
   pname = "layer-shell-qt";
-  nativeBuildInputs = [ extra-cmake-modules ];
+  nativeBuildInputs = [ extra-cmake-modules wayland.bin ];
   buildInputs = [ kguiaddons kidletime kwindowsystem kwayland qtbase wayland-scanner wayland wayland-protocols ];
 }
