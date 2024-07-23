@@ -103,6 +103,7 @@ stdenv.mkDerivation (finalAttrs: {
     xvfb-run
     pkg-config
     python3
+    wayland.bin
     wrapGAppsHook4
     gi-docgen
     xorgserver
