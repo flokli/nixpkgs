@@ -74,7 +74,7 @@ stdenv.mkDerivation (finalAttrs: {
   ] ++ lib.optionals enableDocumentation [
     hotdoc
   ] ++ lib.optionals enableWayland [
-    wayland
+    wayland.bin
   ];
 
   buildInputs = [
