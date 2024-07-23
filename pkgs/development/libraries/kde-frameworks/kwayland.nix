@@ -6,7 +6,7 @@
 
 mkDerivation {
   pname = "kwayland";
-  nativeBuildInputs = [ extra-cmake-modules ];
+  nativeBuildInputs = [ extra-cmake-modules wayland.bin ];
   buildInputs = [ plasma-wayland-protocols wayland wayland-protocols ];
   propagatedBuildInputs = [ qtbase ];
   setupHook = propagateBin; # XDG_CONFIG_DIRS
