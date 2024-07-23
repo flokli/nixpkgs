@@ -42,7 +42,7 @@ stdenv.mkDerivation rec {
     pkg-config
     python3
     bzip2
-    wayland
+    wayland.bin
   ] ++ lib.optionals enableDocumentation [
     hotdoc
   ];
