@@ -12,6 +12,7 @@
 , libdvdread
 , libmad
 , libmpeg2
+, wayland
 , x264
 , libintl
 , lib
@@ -40,6 +41,7 @@ stdenv.mkDerivation rec {
     gettext
     pkg-config
     python3
+    wayland.bin
   ] ++ lib.optionals enableDocumentation [
     hotdoc
   ];
