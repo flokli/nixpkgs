@@ -120,7 +120,7 @@ stdenv.mkDerivation (finalAttrs: {
   ++ optionals chromecastSupport [ protobuf ]
   ++ optionals withQt5 [ libsForQt5.wrapQtAppsHook ]
   ++ optionals waylandSupport [
-    wayland
+    wayland.bin
     wayland-protocols
   ];
 
