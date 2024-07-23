@@ -33,6 +33,7 @@ stdenv.mkDerivation (finalAttrs: {
     ninja
     pkg-config
     wrapGAppsHook4
+    wayland.bin
   ];
 
   buildInputs = [
