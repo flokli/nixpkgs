@@ -6849,6 +6849,8 @@ self: super: with self; {
 
   ipytablewidgets = callPackage ../development/python-modules/ipytablewidgets { };
 
+  ipyvolume = callPackage ../development/python-modules/ipyvolume { };
+
   ipython = callPackage ../development/python-modules/ipython { };
 
   ipython-genutils = callPackage ../development/python-modules/ipython-genutils { };
