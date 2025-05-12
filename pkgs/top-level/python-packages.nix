@@ -10750,6 +10750,8 @@ self: super: with self; {
 
   pandas-stubs = callPackage ../development/python-modules/pandas-stubs { };
 
+  pandasql = callPackage ../development/python-modules/pandasql { };
+
   pandas-ta = callPackage ../development/python-modules/pandas-ta { };
 
   pandera = callPackage ../development/python-modules/pandera { };
