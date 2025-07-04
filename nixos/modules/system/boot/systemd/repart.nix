@@ -86,6 +86,16 @@ in
         default = true;
       };
 
+      extraArgs = lib.mkOption {
+        description = ''
+          Extra command-line arguments to pass to systemd-repart.
+
+          See {manpage}`systemd-repart(8)` for all available options.
+        '';
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+      };
+
       factoryReset = lib.mkOption {
         type = lib.types.bool;
         description = ''
@@ -196,6 +206,7 @@ in
                                   --empty=${initrdCfg.empty} \
                                   --discard=${lib.boolToString initrdCfg.discard} \
                                   --factory-reset=${lib.boolToString initrdCfg.factoryReset} \
+                                  ${utils.escapeSystemdExecArgs initrdCfg.extraArgs} \
                                   ${lib.optionalString (initrdCfg.device != null) initrdCfg.device}
               ''
             ];
