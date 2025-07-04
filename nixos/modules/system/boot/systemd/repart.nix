@@ -85,6 +85,24 @@ in
         '';
         default = true;
       };
+
+      factoryReset = lib.mkOption {
+        type = lib.types.bool;
+        description = ''
+          Controls whether to operate in "factory reset" mode.
+          If set to true, this will remove all existing partitions marked with
+          `FactoryReset=` set to yes early while executing the re-partitioning
+          algorithm.
+          Use with care, this is a great way to lose all your data.
+          Note that partition files need to explicitly turn `FactoryReset=` on,
+          as the option defaults to off. If no partitions are marked for factory
+          reset this switch has no effect.
+          Note that there are two other methods to request factory reset
+          operation: via the kernel command line and via an EFI variable, see
+          {manpage}`systemd-repart(8)` for details.
+        '';
+        default = false;
+      };
     };
 
     systemd.repart = {
@@ -177,6 +195,7 @@ in
                                   --dry-run=no \
                                   --empty=${initrdCfg.empty} \
                                   --discard=${lib.boolToString initrdCfg.discard} \
+                                  --factory-reset=${lib.boolToString initrdCfg.factoryReset} \
                                   ${lib.optionalString (initrdCfg.device != null) initrdCfg.device}
               ''
             ];
