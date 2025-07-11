@@ -158,6 +158,7 @@ in
           "/var" = {
             device = "/dev/mapper/created-crypt";
             fsType = "ext4";
+            options = [ "x-systemd.requires=initrd-root-fs.target" ];
           };
         };
       };
@@ -295,8 +296,11 @@ in
         boot.initrd.systemd.enable = true;
         boot.initrd.systemd.repart.enable = true;
         boot.kernelParams = [
+          # "rd.systemd.unit=rescue.target"
+          # "rd.systemd.debug_shell"
           "systemd.factory_reset=yes"
         ];
+        # boot.initrd.systemd.emergencyAccess = true;
         systemd.repart.partitions = {
           "10-root" = {
             Type = "linux-generic";
