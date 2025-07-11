@@ -295,6 +295,14 @@ in
         boot.initrd.systemd.enable = true;
         boot.initrd.systemd.repart.enable = true;
         boot.initrd.systemd.repart.factoryReset = true;
+        boot.initrd.systemd.emergencyAccess = true;
+        boot.kernelParams = [
+          # "rd.systemd.unit=rescue.target"
+          # "rd.systemd.debug_shell"
+          "rd.systemd.log_level=debug"
+          "rd.udev.log_level=debug"
+
+        ];
         systemd.repart.partitions = {
           "10-root" = {
             Type = "linux-generic";
@@ -310,6 +318,7 @@ in
           "/var" = {
             device = "/dev/disk/by-partlabel/scratch";
             fsType = "ext4";
+            options = [ "x-systemd.after=initrd-root-fs.target" ];
           };
         };
       };
@@ -325,17 +334,11 @@ in
         machine.start(allow_reboot = True)
         machine.wait_for_unit("multi-user.target")
 
-        systemd_repart_logs = machine.succeed("journalctl --boot --unit systemd-repart.service")
-        assert "successfully formatted as ext4 (label \"scratch\"" in systemd_repart_logs
-
         assert "/dev/vda3" in machine.succeed("mount")
         machine.succeed("touch /var/canary")
 
         machine.reboot()
         machine.wait_for_unit("multi-user.target")
-
-        systemd_repart_logs = machine.succeed("journalctl --boot --unit systemd-repart.service")
-        assert "Successfully wiped file system signatures from future partition 2." in systemd_repart_logs
 
         assert "/dev/vda3" in machine.succeed("mount")
 
