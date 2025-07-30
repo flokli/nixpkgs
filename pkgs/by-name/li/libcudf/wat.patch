@@ -1,0 +1,90 @@
+From bdaeb132f0fd1715ccffae6ca982d8b1a1f68037 Mon Sep 17 00:00:00 2001
+From: Florian Klink <flokli@flokli.de>
+Date: Wed, 30 Jul 2025 15:04:27 +0200
+Subject: [PATCH] wat
+
+---
+ cpp/CMakeLists.txt                            |  2 +-
+ .../Modules/JitifyPreprocessKernels.cmake     | 25 -------------------
+ cpp/cmake/thirdparty/get_arrow.cmake          |  5 ----
+ cpp/cmake/thirdparty/get_nanoarrow.cmake      |  2 +-
+ 4 files changed, 2 insertions(+), 32 deletions(-)
+
+diff --git a/cpp/CMakeLists.txt b/cpp/CMakeLists.txt
+index 607df3d677..a6104557bf 100644
+--- a/cpp/CMakeLists.txt
++++ b/cpp/CMakeLists.txt
+@@ -992,7 +992,7 @@ target_compile_definitions(cudf PRIVATE $<$<BOOL:${CUDF_KVIKIO_REMOTE_IO}>:CUDF_
+ target_compile_definitions(cudf PRIVATE THRUST_FORCE_32_BIT_OFFSET_TYPE=1 CCCL_AVOID_SORT_UNROLL=1)
+ 
+ # Compile stringified JIT sources first
+-add_dependencies(cudf jitify_preprocess_run)
++# add_dependencies(cudf jitify_preprocess_run)
+ 
+ # Specify the target module library dependencies
+ target_link_libraries(
+diff --git a/cpp/cmake/Modules/JitifyPreprocessKernels.cmake b/cpp/cmake/Modules/JitifyPreprocessKernels.cmake
+index 1e6bdf99b7..a7cbcb7322 100644
+--- a/cpp/cmake/Modules/JitifyPreprocessKernels.cmake
++++ b/cpp/cmake/Modules/JitifyPreprocessKernels.cmake
+@@ -61,28 +61,3 @@ if(NOT (EXISTS "${CUDF_GENERATED_INCLUDE_DIR}/include"))
+   make_directory("${CUDF_GENERATED_INCLUDE_DIR}/include")
+ endif()
+ 
+-jit_preprocess_files(
+-  SOURCE_DIRECTORY ${CUDF_SOURCE_DIR}/src FILES binaryop/jit/kernel.cu transform/jit/kernel.cu
+-  rolling/jit/kernel.cu
+-)
+-
+-add_custom_target(
+-  jitify_preprocess_run
+-  DEPENDS ${JIT_PREPROCESSED_FILES}
+-  COMMENT "Target representing jitified files."
+-)
+-
+-# when a user requests CMake to clean the build directory
+-#
+-# * `cmake --build <dir> --target clean`
+-# * `cmake --build <dir> --clean-first`
+-# * ninja clean
+-#
+-# We also remove the jitify2 program cache as well. This ensures that we don't keep older versions
+-# of the programs in cache
+-set(cache_path "$ENV{HOME}/.cudf")
+-if(ENV{LIBCUDF_KERNEL_CACHE_PATH})
+-  set(cache_path "$ENV{LIBCUDF_KERNEL_CACHE_PATH}")
+-endif()
+-cmake_path(APPEND cache_path "${CUDF_VERSION}/")
+-set_target_properties(jitify_preprocess_run PROPERTIES ADDITIONAL_CLEAN_FILES "${cache_path}")
+diff --git a/cpp/cmake/thirdparty/get_arrow.cmake b/cpp/cmake/thirdparty/get_arrow.cmake
+index c519fa687c..f7379175ea 100644
+--- a/cpp/cmake/thirdparty/get_arrow.cmake
++++ b/cpp/cmake/thirdparty/get_arrow.cmake
+@@ -148,11 +148,6 @@ function(find_and_configure_arrow VERSION BUILD_STATIC EXCLUDE_FROM_ALL ENABLE_P
+     endif()
+     # Arrow_ADDED: set if CPM downloaded Arrow from Github
+   elseif(Arrow_ADDED)
+-    # Copy these files so we can avoid adding paths in Arrow_BINARY_DIR to
+-    # target_include_directories. That defeats ccache.
+-    file(INSTALL "${Arrow_BINARY_DIR}/src/arrow/util/config.h"
+-         DESTINATION "${Arrow_SOURCE_DIR}/cpp/src/arrow/util"
+-    )
+     if(ENABLE_PARQUET)
+       file(INSTALL "${Arrow_BINARY_DIR}/src/parquet/parquet_version.h"
+            DESTINATION "${Arrow_SOURCE_DIR}/cpp/src/parquet"
+diff --git a/cpp/cmake/thirdparty/get_nanoarrow.cmake b/cpp/cmake/thirdparty/get_nanoarrow.cmake
+index 6765202cc5..cc67366bb8 100644
+--- a/cpp/cmake/thirdparty/get_nanoarrow.cmake
++++ b/cpp/cmake/thirdparty/get_nanoarrow.cmake
+@@ -23,7 +23,7 @@ function(find_and_configure_nanoarrow)
+   # Currently we need to always build nanoarrow so we don't pickup a previous installed version
+   set(CPM_DOWNLOAD_nanoarrow ON)
+   rapids_cpm_find(
+-    nanoarrow 0.7.0.dev
++    nanoarrow 0.7.0
+     GLOBAL_TARGETS nanoarrow
+     CPM_ARGS
+     GIT_REPOSITORY https://github.com/apache/arrow-nanoarrow.git
+-- 
+2.50.0
+

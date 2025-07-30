@@ -1,0 +1,25 @@
+From 32acd22aed8c858b77ac5022bac01c30f6d2bf73 Mon Sep 17 00:00:00 2001
+From: Florian Klink <flokli@flokli.de>
+Date: Tue, 29 Jul 2025 17:03:09 +0200
+Subject: [PATCH] download_with_retry: also log output_file
+
+---
+ rapids-cmake/cmake/download_with_retry.cmake | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rapids-cmake/cmake/download_with_retry.cmake b/rapids-cmake/cmake/download_with_retry.cmake
+index c104ab7..e433de9 100644
+--- a/rapids-cmake/cmake/download_with_retry.cmake
++++ b/rapids-cmake/cmake/download_with_retry.cmake
+@@ -76,7 +76,7 @@ function(rapids_cmake_download_with_retry url output_file sha256)
+       if(downloaded_sha256 STREQUAL "${sha256}")
+         set(download_success TRUE)
+       else()
+-        message(WARNING "Downloaded file SHA256 checksum mismatch. Expected: ${sha256}, Got: ${downloaded_sha256}"
++        message(WARNING "Downloaded file at ${output_file} SHA256 checksum mismatch. Expected: ${sha256}, Got: ${downloaded_sha256}"
+         )
+         file(REMOVE "${output_file}")
+       endif()
+-- 
+2.50.0
+
