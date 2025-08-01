@@ -7,6 +7,8 @@
   ensureNewerSourcesForZipFilesHook,
   fetchFromGitHub,
   fetchpatch,
+  gtest,
+  gbenchmark,
   glpk,
   highs,
   lib,
@@ -55,6 +57,7 @@ stdenv.mkDerivation (finalAttrs: {
       url = "https://build.opensuse.org/public/source/science/google-or-tools/0001-Fix-up-broken-CMake-rules-for-bundled-pybind-stuff.patch?rev=19";
       hash = "sha256-r38ZbRkEW1ZvJb0Uf56c0+HcnfouZZJeEYlIK7quSjQ=";
     })
+    ./math_opt-only-run-SCIP-tests-if-enabled.patch
   ];
 
   # or-tools normally attempts to build Protobuf for the build platform when
@@ -107,6 +110,8 @@ stdenv.mkDerivation (finalAttrs: {
     bzip2
     cbc
     eigen
+    gbenchmark
+    gtest
     glpk
     highs
     python3.pkgs.absl-py
@@ -130,12 +135,17 @@ stdenv.mkDerivation (finalAttrs: {
     python3.pkgs.pandas
   ];
   nativeCheckInputs = [
+    # cmake/python.cmake
     python3.pkgs.matplotlib
+    python3.pkgs.pandas
+    python3.pkgs.pytest
+    python3.pkgs.scipy
+    python3.pkgs.svgwrite
     python3.pkgs.virtualenv
   ];
 
   # some tests fail on linux and hang on darwin
-  doCheck = false;
+  doCheck = true;
 
   preCheck = ''
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH''${LD_LIBRARY_PATH:+:}$PWD/lib

@@ -1,0 +1,66 @@
+From 52e9aba4712dc93b3fff2fbd58f084516e1477dd Mon Sep 17 00:00:00 2001
+From: Florian Klink <flokli@flokli.de>
+Date: Fri, 1 Aug 2025 14:30:54 +0200
+Subject: [PATCH] math_opt: only run SCIP tests if enabled
+
+---
+ ortools/math_opt/solver_tests/test_models_test.cc | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/ortools/math_opt/solver_tests/test_models_test.cc b/ortools/math_opt/solver_tests/test_models_test.cc
+index 9c751ce1a2..6fbb74312c 100644
+--- a/ortools/math_opt/solver_tests/test_models_test.cc
++++ b/ortools/math_opt/solver_tests/test_models_test.cc
+@@ -24,21 +24,25 @@ namespace operations_research::math_opt {
+ 
+ using ::testing::status::IsOkAndHolds;
+ 
++#if defined(USE_SCIP)
+ TEST(SmallModelTest, Integer) {
+   const std::unique_ptr<const Model> model = SmallModel(/*integer=*/true);
+   EXPECT_THAT(Solve(*model, SolverType::kGscip), IsOkAndHolds(IsOptimal(9.0)));
+ }
++#endif  // USE_SCIP
+ 
+ TEST(SmallModelTest, Continuous) {
+   const std::unique_ptr<const Model> model = SmallModel(/*integer=*/false);
+   EXPECT_THAT(Solve(*model, SolverType::kGlop), IsOkAndHolds(IsOptimal(12.0)));
+ }
+ 
++#if defined(USE_SCIP)
+ TEST(DenseIndependentSetTest, Integer) {
+   const std::unique_ptr<const Model> model =
+       DenseIndependentSet(/*integer=*/true);
+   EXPECT_THAT(Solve(*model, SolverType::kGscip), IsOkAndHolds(IsOptimal(7.0)));
+ }
++#endif  // USE_SCIP
+ 
+ TEST(DenseIndependentSetTest, Continuous) {
+   const std::unique_ptr<const Model> model =
+@@ -47,6 +51,7 @@ TEST(DenseIndependentSetTest, Continuous) {
+               IsOkAndHolds(IsOptimal(10.0 * (5 + 4 + 3) / 2.0)));
+ }
+ 
++#if defined(USE_SCIP)
+ TEST(DenseIndependentSetHint5Test, HintIsFeasibleWithObjective5) {
+   const std::unique_ptr<Model> model = DenseIndependentSet(/*integer=*/true, 5);
+   ModelSolveParameters model_params;
+@@ -58,12 +63,15 @@ TEST(DenseIndependentSetHint5Test, HintIsFeasibleWithObjective5) {
+   }
+   EXPECT_THAT(Solve(*model, SolverType::kGscip), IsOkAndHolds(IsOptimal(5.0)));
+ }
++#endif  // USE_SCIP
+ 
++#if defined(USE_SCIP)
+ TEST(IndependentSetCompleteGraphTest, Integer) {
+   const std::unique_ptr<const Model> model =
+       IndependentSetCompleteGraph(/*integer=*/true);
+   EXPECT_THAT(Solve(*model, SolverType::kGscip), IsOkAndHolds(IsOptimal(1.0)));
+ }
++#endif  // USE_SCIP
+ 
+ TEST(IndependentSetCompleteGraphTest, Continuous) {
+   const std::unique_ptr<const Model> model =
+-- 
+2.50.0
+
