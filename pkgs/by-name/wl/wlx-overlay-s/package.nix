@@ -22,8 +22,7 @@
   testers,
   wayland,
   wlx-overlay-s,
-  # openvr support is broken on aarch64-linux
-  withOpenVr ? !stdenv.hostPlatform.isAarch64,
+  withOpenVr ? true,
 }:
 
 rustPlatform.buildRustPackage rec {
@@ -31,13 +30,17 @@ rustPlatform.buildRustPackage rec {
   version = "25.4.2";
 
   src = fetchFromGitHub {
-    owner = "galister";
+    owner = "flokli";
     repo = "wlx-overlay-s";
-    rev = "v${version}";
-    hash = "sha256-lWUfhiHRxu72p9ZG2f2fZH6WZECm/fOKcK05MLZV+MI=";
+    rev = "b1cb055870c36a213ad61bce457b3a7655ec7a9e";
+    hash = "sha256-nU4PhBP7hJOpHg7rINU374xp4975LAeFQZO3XqFTTyQ=";
   };
 
-  cargoHash = "sha256-em5sWSty2/pZp2jTwBnLUIBgPOcoMpwELwj984XYf+k=";
+  # cargoHash = "sha256-Mgie4cvFotr7I/pOJJWaUHF/vQYBg2WUeV//b1vv2nw=";
+  cargoLock = {
+    lockFile = "${src}/Cargo.lock";
+    allowBuiltinFetchGit = true;
+  };
 
   # explicitly only add openvr if withOpenVr is set to true.
   buildNoDefaultFeatures = true;
@@ -92,7 +95,6 @@ rustPlatform.buildRustPackage rec {
     license = lib.licenses.gpl3Only;
     maintainers = with lib.maintainers; [ Scrumplex ];
     platforms = lib.platforms.linux;
-    broken = stdenv.hostPlatform.isAarch64 && withOpenVr;
     mainProgram = "wlx-overlay-s";
   };
 }
