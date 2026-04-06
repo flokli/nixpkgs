@@ -6,6 +6,7 @@
   yarnConfigHook,
   yarnBuildHook,
   yarnInstallHook,
+  go,
   nodejs,
   buildGo125Module,
   runCommand,
@@ -75,6 +76,11 @@ buildGo125Module (finalAttrs: {
     cp ${finalAttrs.src}/templates/email/* $out/
   '';
 
+  histogram-quantile = runCommand "histogram-quantile" { nativeBuildInputs = [ go ]; } ''
+    mkdir -p $out/bin
+    HOME=$(mktemp -d) go build -C ${finalAttrs.src}/scripts/clickhouse/histogramquantile -o $out/bin/histogramQuantile
+  '';
+
   subPackages = [ "cmd/community" ];
 
   ldflags = [
@@ -102,7 +108,7 @@ buildGo125Module (finalAttrs: {
   versionCheckProgramArg = "-v";
 
   passthru = {
-    inherit (finalAttrs) frontend;
+    inherit (finalAttrs) frontend histogram-quantile;
     # TODO
     # tests = {
     #   inherit (nixosTests) signoz;
