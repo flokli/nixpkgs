@@ -33,17 +33,23 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "m1n1";
-  version = "1.5.2";
+  version = "1.6.0-rc1";
 
   src = fetchFromGitHub {
     owner = "AsahiLinux";
     repo = "m1n1";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-rxop5r+EVXnp1OVkGT6MUwcl6yNTJxJSJuruZiaou7g=";
+    hash = "sha256-qW7Fg4PK08AZzOgN+1VYvSyEjTYb8Faj0AWnApeOx3A=";
     fetchSubmodules = true;
   };
 
-  cargoVendorDir = ".";
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    inherit (finalAttrs) pname version src;
+    sourceRoot = "${finalAttrs.src.name}/rust";
+    hash = "sha256-ZGCPG2/IjlhSwqAhwbebFam2sdCjxR1s7U20v2xhwtg=";
+  };
+
+  cargoRoot = "rust";
 
   postPatch = lib.optionalString (customLogo != null) ''
     magick ${customLogo} -resize 128x128 data/custom_128.png
