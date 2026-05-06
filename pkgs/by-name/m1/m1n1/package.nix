@@ -32,17 +32,23 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "m1n1";
-  version = "1.5.2";
+  version = "unstable-2025-05-05";
 
   src = fetchFromGitHub {
-    owner = "AsahiLinux";
+    owner = "flokli";
     repo = "m1n1";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-rxop5r+EVXnp1OVkGT6MUwcl6yNTJxJSJuruZiaou7g=";
+    rev = "52795b2ba038ba31c7f155071af8748680161b85";
+    hash = "sha256-QHtP4HHHNbqQUAezsIV3hjEAo/qayNK+7UdRvM5iAUE=";
     fetchSubmodules = true;
   };
 
-  cargoVendorDir = ".";
+  cargoDeps = rustPlatform.fetchCargoVendor {
+    inherit (finalAttrs) pname version;
+    # src = "${finalAttrs.src}/rust";
+    sourceRoot = "rust";
+    hash = "sha256-vlaY+U55Er6iardbQXXiJcU7+vSMKGoq1a1/U90oTFQ=";
+  };
+  cargoRoot = "rust";
 
   postPatch = lib.optionalString (customLogo != null) ''
     magick ${customLogo} -resize 128x128 data/custom_128.png
@@ -66,7 +72,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   makeFlags = [
     "ARCH=${stdenv.cc.targetPrefix}"
-    "RELEASE=1"
+    # "RELEASE=1"
     "CHAINLOADING=1"
   ]
   ++ lib.optional (customLogo != null) "LOGO=custom";
